@@ -33,6 +33,13 @@
       {t('env.reads')}
       {#if env === 'sandbox'}
         <strong>{t('env.sandboxServer', { host: host(TARGETS.sandbox.apiUrl) })}</strong>
+        <!-- The one thing read from live OSM in the sandbox: administrative boundaries. -->
+        <small title={t('regions.hint')}>
+          {t('env.regionsVia')}
+          <select bind:value={app.endpoint} aria-label={t('env.endpoint')}>
+            {#each OVERPASS_ENDPOINTS as e (e)}<option value={e}>{host(e)}</option>{/each}
+          </select>
+        </small>
       {:else}
         <strong>{t('env.liveMap')}</strong>
         <select bind:value={app.endpoint} aria-label={t('env.endpoint')}>

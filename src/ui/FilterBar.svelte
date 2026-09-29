@@ -81,8 +81,11 @@
         {#each app.regionNames as r (r)}<option value={r}>{r}</option>{/each}
       </select>
     </label>
-  {:else if app.osmMeta && !app.busy}
-    <button type="button" onclick={() => void app.loadRegions()}>{t('regions.load')}</button>
+  {:else if !app.busy}
+    <!-- Independent of the station data: boundaries always come from live OSM. -->
+    <button type="button" title={t('regions.hint')} onclick={() => void app.loadRegions()}
+      >{t('regions.load')}</button
+    >
   {/if}
   <label
     ><input type="checkbox" bind:checked={app.filters.warningsOnly} />

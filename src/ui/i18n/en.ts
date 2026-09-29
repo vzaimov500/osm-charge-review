@@ -46,7 +46,9 @@ export const en = {
   'osm.busy': 'Fetching OpenStreetMap data… one request for the whole area.',
   'filters.class': 'Class',
   'filters.region': 'Region',
-  'regions.load': 'Load region names',
+  'regions.load': 'Look up municipalities',
+  'regions.hint':
+    'Finds the municipality or district of every candidate, in one Overpass request using the administrative boundaries in live OpenStreetMap. Used by the Region filter and in changeset comments. Nothing is written.',
   'regions.busy': 'Looking up administrative areas… one request for all candidates.',
   'filters.decided': 'Decided',
   'filters.action': 'Action',
@@ -110,6 +112,7 @@ export const en = {
   'env.writes': 'Writes to:',
   'env.sandboxServer': 'OSM sandbox ({host})',
   'env.liveMap': 'live OpenStreetMap via',
+  'env.regionsVia': '· municipality names from live OSM via',
   'env.liveUnlocked': 'LIVE OpenStreetMap (unlocked for this session)',
   'env.liveLocked': 'nothing — writing to live OSM is locked',
   'env.unlock': 'Unlock…',
