@@ -4,29 +4,7 @@
   import type { AppState } from './state.svelte'
 
   let { app }: { app: AppState } = $props()
-  let input: HTMLInputElement
-  const info = $derived(app.exportInfo)
-  const stale = $derived(info.decisionsSince > 0)
 </script>
-
-<span class="backup" class:stale>
-  {info.lastExportAt ? t('backup.last', { at: fmtDateTime(info.lastExportAt) }) : t('backup.never')}
-  {#if stale}<strong>· {t('backup.since', { n: info.decisionsSince })}</strong>{/if}
-  <button type="button" onclick={() => void app.exportNow()}>{t('backup.export')}</button>
-  <button type="button" onclick={() => input.click()}>{t('backup.import')}</button>
-  <input
-    bind:this={input}
-    type="file"
-    accept=".json,application/json"
-    hidden
-    data-testid="state-import"
-    onchange={(e) => {
-      const f = e.currentTarget.files?.[0]
-      if (f) void app.readStateImport(f)
-      e.currentTarget.value = ''
-    }}
-  />
-</span>
 
 {#if app.pendingImport}
   {@const p = app.pendingImport}
@@ -50,12 +28,6 @@
 {/if}
 
 <style>
-  .backup {
-    font-size: 0.75rem;
-  }
-  .stale {
-    color: var(--warn-fg);
-  }
   .dialog {
     position: fixed;
     top: 4rem;

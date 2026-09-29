@@ -48,7 +48,7 @@ async function signedIn(context: BrowserContext) {
 async function decideAndPlan(page: Page) {
   // Sandbox: reads and writes the sandbox (routed to the fake here).
   await page.getByRole('radio', { name: 'Sandbox (test)' }).check()
-  await expect(page.getByText(/Writes to:\s*OSM sandbox/)).toBeVisible()
+  await expect(page.getByText('reads and writes the OSM sandbox')).toBeVisible()
   // Keyboard shortcuts are ignored while a form control has focus.
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
   const rows = page.locator('article.row')
@@ -57,7 +57,7 @@ async function decideAndPlan(page: Page) {
   await page.locator('body').press('j')
   await page.locator('body').press('a')
   await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
-  await page.getByRole('button', { name: 'Upload…' }).click()
+  await page.getByRole('button', { name: /^Upload · \d+ ready$/ }).click()
   await page.getByRole('button', { name: 'Plan batches from ready decisions' }).click()
   await expect(page.getByText(/batches planned/)).toBeVisible()
 }
@@ -69,7 +69,7 @@ test('a batch uploads to the sandbox and prompts for an export', async ({ page, 
   await offline(page)
   await loadQueue(page)
   await decideAndPlan(page)
-  await expect(page.getByText(/Signed in to .* as sandbox_tester/)).toBeVisible()
+  await expect(page.getByText('sandbox_tester', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Upload to sandbox' }).first().click()
   await expect(page.getByText(/Batch uploaded: \d+ changes/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Export state' }).first()).toBeVisible()
@@ -99,7 +99,7 @@ for (const hold of ['after-server', 'before-server'] as const) {
     const again = await context.newPage()
     await offline(again)
     await again.goto('/')
-    await again.getByRole('button', { name: 'Upload…' }).click()
+    await again.getByRole('button', { name: /^Upload · \d+ ready$/ }).click()
     await expect(again.getByText(/In flight at step "upload"/)).toBeVisible()
     await again.getByRole('button', { name: 'Recover' }).click()
     if (hold === 'after-server') {
@@ -107,7 +107,7 @@ for (const hold of ['after-server', 'before-server'] as const) {
       await expect(again.getByRole('cell', { name: /^verified/ })).toBeVisible() // recovered, then read back
     } else {
       await expect(again.getByText(/the upload did not reach the server/).first()).toBeVisible()
-      await expect(again.getByText('2 decisions ready')).toBeVisible() // still ready: nothing landed
+      await expect(again.getByRole('button', { name: 'Upload · 2 ready' })).toBeVisible() // still ready: nothing landed
     }
     expect(fake.requests.filter((r) => r.path.endsWith('/upload'))).toHaveLength(
       hold === 'after-server' ? 1 : 0,

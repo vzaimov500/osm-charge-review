@@ -1,0 +1,48 @@
+import type { MatchClass } from '../match'
+import type { Action, RowModel } from './rows'
+
+/**
+ * A row's state as four fixed-width letters, read like `ls -l`: match,
+ * decision, batch, attention. `-` always means "nothing (yet)".
+ */
+export interface StatusCode {
+  match: string
+  decision: string
+  batch: string
+  attention: string
+}
+
+/** Where a row's decision is in the upload pipeline of the current environment. */
+export type BatchState = 'planned' | 'uploaded' | 'verified'
+
+export const MATCH_CHAR: Record<MatchClass, string> = {
+  linked: 'L',
+  probable: 'P',
+  possible: '?',
+  none: 'N',
+  lifecycle: 'X',
+}
+export const DECISION_CHAR: Record<Action, string> = {
+  add: 'A',
+  update: 'U',
+  reject: 'R',
+  skip: 'S',
+}
+export const BATCH_CHAR: Record<BatchState, string> = { planned: 'b', uploaded: 'u', verified: 'v' }
+
+export function statusCode(row: RowModel, batch?: BatchState): StatusCode {
+  return {
+    match: MATCH_CHAR[row.match.class],
+    decision: row.decision ? DECISION_CHAR[row.decision.action] : '-',
+    batch: batch ? BATCH_CHAR[batch] : '-',
+    attention: row.warnings.includes('superseded') ? '*' : row.warnings.length > 0 ? '!' : '-',
+  }
+}
+
+/** Batch statuses → the row-level state shown in the list. Failed and reverted batches show nothing. */
+export function batchStateOf(status: string): BatchState | undefined {
+  if (status === 'draft') return 'planned'
+  if (status === 'in_flight') return 'uploaded'
+  if (status === 'verified') return 'verified'
+  return undefined
+}

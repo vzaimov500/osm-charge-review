@@ -15,6 +15,12 @@
   --warn-fg: #b45309;
   --err-fg: #b91c1c;
   --ok-fg: #15803d;
+  --sandbox-bg: #fff1d6;
+  --sandbox-fg: #6b4200;
+  --live-bg: #fde3e1;
+  --live-fg: #8f1d14;
+  --primary-bg: #2f6f4f;
+  --primary-fg: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -31,6 +37,12 @@
     --warn-fg: #fbbf24;
     --err-fg: #fca5a5;
     --ok-fg: #86efac;
+    --sandbox-bg: #4a3405;
+    --sandbox-fg: #fde68a;
+    --live-bg: #5b1410;
+    --live-fg: #fecaca;
+    --primary-bg: #3f8f67;
+    --primary-fg: #ffffff;
   }
 }
 body {

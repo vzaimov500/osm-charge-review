@@ -42,6 +42,8 @@ import {
   type GateProblem,
   type LiveSettings,
   type RowModel,
+  batchStateOf,
+  type BatchState,
 } from '../review'
 import { importDataset, listDatasets, loadCandidates, type ImportSummary } from '../store/datasets'
 import {
@@ -170,6 +172,17 @@ export class AppState {
     filterAndSort(this.rows, this.filters, (r) => this.regions.get(r.candidate.sourceId)),
   )
   stats = $derived(computeStats(this.rows))
+  /** Rows with a decision (superseded rows need re-confirming and do not count). */
+  reviewedCount = $derived(this.rows.filter((r) => r.decided).length)
+  /** Where each row stands in this environment's batches; the newest batch wins. */
+  batchStates = $derived(
+    new Map<string, BatchState>(
+      [...this.batches].reverse().flatMap((b) => {
+        const s = batchStateOf(b.status)
+        return s ? b.sourceIds.map((id) => [id, s] as const) : []
+      }),
+    ),
+  )
 
   async init(): Promise<void> {
     this.storage = await checkStorage()

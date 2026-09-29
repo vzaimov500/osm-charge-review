@@ -10,7 +10,7 @@ test.describe('review queue', () => {
     await loadQueue(page)
     await expect(page.getByText('600 of 600')).toBeVisible()
     // Licence is not compatible: shown prominently.
-    await expect(page.getByText(/live upload will be refused/)).toBeVisible()
+    await expect(page.getByText(/live upload blocked/)).toBeVisible()
 
     await page.getByRole('button', { name: 'Fetch OpenStreetMap data' }).click()
     await expect(page.getByText(/OSM data from .* objects\)/)).toBeVisible()
@@ -83,14 +83,14 @@ test.describe('review queue', () => {
     await expect(rows.nth(0).getByRole('radio', { name: /Skip/ })).toBeChecked()
     await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
     await expect(rows.nth(2).getByRole('radio', { name: /Reject/ })).toBeChecked()
-    await expect(page.getByText('1 decisions ready')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
   })
 
   test('a changed source record is flagged and excluded until re-confirmed', async ({ page }) => {
     await offline(page)
     await loadQueue(page)
     await page.locator('body').press('a') // add row "1"
-    await expect(page.getByText('1 decisions ready')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
 
     const doc = JSON.parse((await import('node:fs')).readFileSync(QUEUE, 'utf8'))
     doc.features[0].properties.tags.fee = 'no'
@@ -99,11 +99,11 @@ test.describe('review queue', () => {
     await page.getByTestId('candidate-file-header').setInputFiles(changed)
     await expect(page.getByText(/1 changed.*1 decisions need re-confirming/)).toBeVisible()
 
-    await expect(page.getByText('0 decisions ready')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload · 0 ready' })).toBeVisible()
     const row = page.locator('article.row').first()
     await expect(row.getByText(/changed since decision/)).toBeVisible()
     await row.getByRole('button', { name: 'Re-confirm' }).click()
-    await expect(page.getByText('1 decisions ready')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
   })
 
   test('filters are reflected in the URL and restored', async ({ page }) => {
@@ -167,5 +167,5 @@ test('export, clear browser storage, import: every decision is intact', async ({
   await expect(page.getByText(/State imported: 2 decisions written/)).toBeVisible()
   await expect(rows.nth(0).getByRole('radio', { name: /Skip/ })).toBeChecked()
   await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
-  await expect(page.getByText('1 decisions ready')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
 })

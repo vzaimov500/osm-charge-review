@@ -1,111 +1,47 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import BackupControls from './ui/BackupControls.svelte'
-  import BatchBar from './ui/BatchBar.svelte'
   import DatasetLoader from './ui/DatasetLoader.svelte'
-  import EnvironmentBar from './ui/EnvironmentBar.svelte'
   import FilterBar from './ui/FilterBar.svelte'
-  import LiveGate from './ui/LiveGate.svelte'
-  import { fmtDateTime } from './ui/format'
   import { t } from './ui/i18n'
+  import ImportDialog from './ui/ImportDialog.svelte'
+  import LiveGate from './ui/LiveGate.svelte'
   import ReviewTable from './ui/ReviewTable.svelte'
   import { AppState } from './ui/state.svelte'
   import StatsPanel from './ui/StatsPanel.svelte'
+  import StatusLine from './ui/StatusLine.svelte'
+  import TopBar from './ui/TopBar.svelte'
   import UploadPanel from './ui/UploadPanel.svelte'
-  import { TOOL_NAME, TOOL_VERSION } from './version'
 
   const app = new AppState()
   let showStats = $state(false)
-  let fileInput = $state<HTMLInputElement>()
 
   onMount(() => {
     void app.init()
+  })
+
+  // Information fades after a while; errors and export prompts stay until dismissed.
+  $effect(() => {
+    const n = app.notice
+    if (!n || n.kind !== 'info' || n.exportPrompt) return
+    const id = setTimeout(() => {
+      if (app.notice === n) app.notice = null
+    }, 8000)
+    return () => clearTimeout(id)
   })
 
   const ds = $derived(app.dataset)
 </script>
 
 <div class="app">
-  <header>
-    <h1>{TOOL_NAME}</h1>
-    <span class="version">v{TOOL_VERSION}</span>
-    {#if app.datasets.length}
-      <label>
-        {t('dataset.pick')}
-        <select
-          value={ds?.datasetId}
-          onchange={(e) => void app.selectDataset(e.currentTarget.value)}
-        >
-          {#each app.datasets as d (d.datasetId)}<option value={d.datasetId}
-              >{d.info.dataset_name}</option
-            >{/each}
-        </select>
-      </label>
-      <!-- Opens the file picker directly; the loader panel only appears if the file needs attention. -->
-      <input
-        bind:this={fileInput}
-        type="file"
-        data-testid="candidate-file-header"
-        accept=".json,.geojson,application/geo+json,application/json"
-        hidden
-        onchange={(e) => {
-          const f = e.currentTarget.files?.[0]
-          e.currentTarget.value = ''
-          if (f) void app.readFile(f)
-        }}
-      />
-      <button type="button" onclick={() => fileInput?.click()}>{t('dataset.loadAnother')}</button>
-      <button type="button" onclick={() => (showStats = !showStats)}>{t('stats.show')}</button>
-    {/if}
-    {#if app.ready && !app.fatal}<BackupControls {app} />{/if}
-    {#if app.storage}
-      <span class="storage" class:warnc={!app.storage.persisted}>
-        {app.storage.persisted ? t('storage.persisted') : t('storage.notPersisted')}
-        {#if !app.storage.persisted}
-          <button type="button" onclick={() => void app.persist()}>{t('storage.ask')}</button>
-        {/if}
-      </span>
-    {/if}
-  </header>
+  <TopBar {app} onstats={() => (showStats = !showStats)} />
 
   {#if app.fatal}
     <main class="fatal" role="alert">{app.fatal}</main>
   {:else}
-    {#if app.ready}<EnvironmentBar {app} />{/if}
+    {#if app.ready}<StatusLine {app} />{/if}
     {#if app.showLiveGate}<LiveGate {app} />{/if}
+    <ImportDialog {app} />
     {#if app.showUpload && ds}<UploadPanel {app} />{/if}
-    {#if app.notice}
-      <div class="notice {app.notice.kind}" role={app.notice.kind === 'error' ? 'alert' : 'status'}>
-        {app.notice.text}
-        {#if app.notice.exportPrompt}
-          <button type="button" onclick={() => void app.exportNow()}>{t('backup.export')}</button>
-        {/if}
-        <button type="button" onclick={() => (app.notice = null)}>×</button>
-      </div>
-    {/if}
-
-    {#if ds}
-      <div class="dsbar">
-        <span class="licence" class:bad={ds.info.licence_status !== 'compatible'}>
-          {t('dataset.licence')}: <code>{ds.info.licence}</code>
-          {#if ds.info.licence_status !== 'compatible'}— {t('dataset.licenceUnverified')}{/if}
-        </span>
-        <span>{t('dataset.adapter')}: {ds.info.adapter.name} {ds.info.adapter.version}</span>
-        <span>{t('dataset.retrieved')}: {fmtDateTime(ds.info.retrieved_at)}</span>
-        <span class="osm">
-          {#if app.busy}{app.busy}
-          {:else if app.osmMeta}{t('osm.fetchedAt', {
-              at: fmtDateTime(app.osmMeta.fetchedAt),
-              count: app.osmMeta.count,
-            })}
-            <button type="button" onclick={() => void app.fetchOsm(true)}>{t('osm.refetch')}</button
-            >
-          {:else}{t('osm.none')}
-            <button type="button" onclick={() => void app.fetchOsm(false)}>{t('osm.fetch')}</button
-            >{/if}
-        </span>
-      </div>
-    {/if}
 
     {#if (!ds && app.ready) || app.pending}
       <DatasetLoader {app} />
@@ -114,7 +50,6 @@
     {#if ds}
       <FilterBar {app} />
       <ReviewTable {app} />
-      <BatchBar />
     {:else}
       <main>
         <p>{t('app.tagline')}</p>
@@ -122,7 +57,22 @@
     {/if}
   {/if}
 
-  <p class="disclaimer">{t('app.disclaimer')}</p>
+  {#if app.notice}
+    <div class="toast {app.notice.kind}" role={app.notice.kind === 'error' ? 'alert' : 'status'}>
+      <span>{app.notice.text}</span>
+      {#if app.notice.exportPrompt}
+        <button type="button" onclick={() => void app.exportNow()}>{t('backup.export')}</button>
+      {/if}
+      <button type="button" aria-label={t('toast.close')} onclick={() => (app.notice = null)}
+        >×</button
+      >
+    </div>
+  {/if}
+
+  <footer>
+    <span>{t('app.disclaimer')}</span>
+    <span class="keys">{t('keys.help')}</span>
+  </footer>
 </div>
 
 <style>
@@ -131,58 +81,34 @@
     flex-direction: column;
     height: 100vh;
   }
-  header {
+  footer {
     display: flex;
-    align-items: baseline;
-    gap: 0.75rem;
-    padding: 0.4rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.85rem;
-  }
-  h1 {
-    font-size: 1.1rem;
-    margin: 0;
-  }
-  .version,
-  .disclaimer {
-    font-size: 0.72rem;
-    opacity: 0.7;
-  }
-  .disclaimer {
-    margin: 0;
-    padding: 0.2rem 0.75rem;
-  }
-  .storage {
-    margin-left: auto;
-    font-size: 0.75rem;
-  }
-  .warnc {
-    color: var(--warn-fg);
-  }
-  .dsbar {
-    display: flex;
-    flex-wrap: wrap;
     gap: 1rem;
-    padding: 0.35rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.8rem;
+    justify-content: space-between;
+    padding: 0.25rem 0.9rem;
+    font-size: 0.7rem;
+    opacity: 0.75;
+    border-top: 1px solid var(--border);
+  }
+  .toast {
+    position: fixed;
+    right: 1rem;
+    bottom: 2.2rem;
+    z-index: 1800;
+    max-width: 34rem;
+    display: flex;
     align-items: center;
-  }
-  .licence.bad {
-    color: var(--err-fg);
-    font-weight: 600;
-  }
-  .osm {
-    margin-left: auto;
-  }
-  .notice {
-    padding: 0.4rem 0.75rem;
+    gap: 0.6rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
     font-size: 0.85rem;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+    border: 1px solid var(--border);
   }
-  .notice.error {
+  .toast.error {
     background: var(--conflict-bg);
   }
-  .notice.info {
+  .toast.info {
     background: var(--add-bg);
   }
   .fatal {
@@ -192,6 +118,7 @@
     border-radius: 8px;
   }
   main {
-    padding: 0 0.75rem;
+    padding: 0 0.9rem;
+    flex: 1;
   }
 </style>

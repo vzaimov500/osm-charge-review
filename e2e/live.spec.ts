@@ -39,10 +39,10 @@ function compatibleQueue(): string {
 }
 
 async function openGate(page: Page) {
-  await page.getByRole('button', { name: 'Upload…' }).click()
+  await page.getByRole('button', { name: /^Upload · \d+ ready$/ }).click()
   // Live OSM is read freely; writing needs the gate.
   await expect(page.getByRole('radio', { name: 'Live OSM' })).toBeChecked()
-  await expect(page.getByText('writing to live OSM is locked')).toBeVisible()
+  await expect(page.getByText('reads live OSM · writing locked')).toBeVisible()
   await page.getByRole('button', { name: 'Unlock…' }).first().click()
   const gate = page.getByRole('dialog', { name: 'Unlock writing to LIVE OpenStreetMap' })
   await expect(gate).toBeVisible()
@@ -73,7 +73,7 @@ test('live is unreachable with the required URLs unset', async ({ page, context 
   await expect(gate.getByRole('button', { name: 'Unlock writing to LIVE' })).toBeDisabled()
   await expect(gate.getByLabel('Type "live" to confirm')).toHaveCount(0)
   await gate.getByRole('button', { name: 'Cancel' }).click()
-  await expect(page.getByText('writing to live OSM is locked')).toBeVisible()
+  await expect(page.getByText('reads live OSM · writing locked')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Upload to live' })).toHaveCount(0)
   expect(fake.requests.filter((r) => r.method !== 'GET')).toHaveLength(0)
 })
@@ -129,7 +129,7 @@ test('with everything recorded: typed confirmation, small first batch, dry run b
   await confirm.fill('live')
   await gate.getByRole('button', { name: 'Unlock writing to LIVE' }).click()
   await expect(page.getByText(/^LIVE · First live batches/)).toBeVisible()
-  await expect(page.getByText('LIVE OpenStreetMap (unlocked for this session)')).toBeVisible()
+  await expect(page.getByText('reads and writes LIVE OpenStreetMap')).toBeVisible()
 
   await page.getByRole('button', { name: 'Plan batches from ready decisions' }).click()
   const upload = page.getByRole('button', { name: 'Upload to live' }).first()
