@@ -122,6 +122,8 @@ export const en = {
   'env.rwLiveUnlocked': 'reads and writes LIVE OpenStreetMap',
   'menu.title': 'Settings and more',
   'menu.data': 'Data',
+  'menu.review': 'Reviewing',
+  'menu.autoAdvance': 'After a decision, jump to the next undecided station',
   'menu.overpassHint': 'Used for live OSM data and for regions.',
   'status.candidates': 'candidates · file {at}',
   'status.regions': 'Regions: {n}',
@@ -211,7 +213,8 @@ export const en = {
   'live.needsDryRun': 'Live batches need a dry run (.osc, checked in JOSM) before upload.',
   'stats.title': 'Statistics',
   'stats.show': 'Stats',
-  'keys.help': 'Keys: j/k move · a/u/r/s decide · / search',
+  'keys.help':
+    'Keys: j k (↓ ↑) next / previous · n p next / previous undecided · u a r s decide · / search',
 } as const
 
 export type MessageKey = keyof typeof en

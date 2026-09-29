@@ -54,3 +54,21 @@ export function batchStateOf(status: string): BatchState | undefined {
   if (status === 'verified') return 'verified'
   return undefined
 }
+
+/**
+ * The next (dir 1) or previous (dir -1) undecided row from `from`, not
+ * including `from` itself; undefined when there is none in that direction.
+ */
+export function nextUndecided(
+  rows: readonly RowModel[],
+  from: number,
+  dir: 1 | -1 = 1,
+): number | undefined {
+  for (let i = from + dir; i >= 0 && i < rows.length; i += dir) if (!rows[i]!.decided) return i
+  return undefined
+}
+
+/** Auto-advance leaves rows that still need a look (a conflict to tick, a changed record). */
+export function mayAdvanceFrom(row: RowModel): boolean {
+  return statusCode(row).attention === '-'
+}

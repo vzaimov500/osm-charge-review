@@ -64,14 +64,14 @@ test.describe('review queue', () => {
 
     const rows = page.locator('.li')
     // Wait for each decision to show before the next key, as a reviewer would.
-    await page.locator('body').press('s') // skip row 1
+    await page.locator('body').press('4') // skip row 1 → moves on by itself
     await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
-    await page.locator('body').press('j')
     await expect(rows.nth(1)).toHaveClass(/sel/)
-    await page.locator('body').press('a') // add row 2
+    await page.locator('body').press('2') // add row 2
     await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
-    await page.locator('body').press('j')
-    await page.locator('body').press('r') // reject row 3 → reason picker
+    // Row 2 may keep the selection (it moves on only when nothing needs a look): pick row 3.
+    await rows.nth(2).click()
+    await page.locator('body').press('3') // reject row 3 → reason picker
     await page.getByRole('combobox', { name: 'Reason' }).selectOption('duplicate')
     await expect(rows.nth(2)).toHaveAttribute('data-decision', 'reject')
 
@@ -86,7 +86,7 @@ test.describe('review queue', () => {
   test('a changed source record is flagged and excluded until re-confirmed', async ({ page }) => {
     await offline(page)
     await loadQueue(page)
-    await page.locator('body').press('a') // add row "1"
+    await page.locator('body').press('2') // add row "1"
     await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
 
     const doc = JSON.parse((await import('node:fs')).readFileSync(QUEUE, 'utf8'))
@@ -97,10 +97,50 @@ test.describe('review queue', () => {
     await expect(page.getByText(/1 changed.*1 decisions need re-confirming/)).toBeVisible()
 
     await expect(page.getByRole('button', { name: 'Upload · 0 ready' })).toBeVisible()
+    await page.locator('.li').first().click() // the decision moved the selection on
     const row = page.locator('section.detail')
     await expect(row.getByText(/changed since decision/)).toBeVisible()
     await row.getByRole('button', { name: 'Re-confirm' }).click()
     await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
+  })
+
+  test('after a decision the next undecided station opens; W goes back, Q / E jump', async ({
+    page,
+  }) => {
+    await offline(page)
+    await loadQueue(page)
+    const rows = page.locator('.li')
+    const key = (k: string) => page.locator('body').press(k)
+    await key('1') // nothing to update without OSM data: refused, stays put
+    await expect(rows.nth(0)).toHaveClass(/sel/)
+    await key('2')
+    await expect(rows.nth(1)).toHaveClass(/sel/) // moved on
+    await key('w') // back
+    await expect(rows.nth(0)).toHaveClass(/sel/)
+    await key('ArrowDown')
+    await key('ArrowDown')
+    await key('4')
+    await expect(rows.nth(3)).toHaveClass(/sel/)
+    await key('q') // previous undecided: row 2 (index 1)
+    await expect(rows.nth(1)).toHaveClass(/sel/)
+    await key('e') // next undecided: index 3
+    await expect(rows.nth(3)).toHaveClass(/sel/)
+
+    // Keys follow the key's position, not the letter: a Bulgarian layout sends 'в' on W.
+    await page.evaluate(() =>
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'в', code: 'KeyW', bubbles: true })),
+    )
+    await expect(rows.nth(2)).toHaveClass(/sel/)
+    await key('s')
+    await expect(rows.nth(3)).toHaveClass(/sel/)
+
+    // Switched off in the menu: decisions stay on the station.
+    await page.locator('summary', { hasText: '⋯' }).click()
+    await page.getByLabel('After a decision, jump to the next undecided station').uncheck()
+    await page.locator('summary', { hasText: '⋯' }).click()
+    await key('2')
+    await expect(rows.nth(3)).toHaveAttribute('data-decision', 'add')
+    await expect(rows.nth(3)).toHaveClass(/sel/)
   })
 
   test('filters are reflected in the URL and restored', async ({ page }) => {
@@ -126,10 +166,10 @@ test('export, clear browser storage, import: every decision is intact', async ({
   await offline(page)
   await loadQueue(page)
   const rows = page.locator('.li')
-  await page.locator('body').press('s')
+  await page.locator('body').press('4')
   await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
-  await page.locator('body').press('j')
-  await page.locator('body').press('a')
+  await expect(rows.nth(1)).toHaveClass(/sel/)
+  await page.locator('body').press('2')
   await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
   await expect(page.getByText(/2 decisions since — export now/)).toBeVisible()
 

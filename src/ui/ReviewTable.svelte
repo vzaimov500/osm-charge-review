@@ -31,10 +31,14 @@
   })
 
   function move(delta: number) {
-    const next = Math.min(app.visible.length - 1, Math.max(0, app.focused + delta))
-    app.focused = next
-    $virtualizer.scrollToIndex(next, { align: 'auto' })
+    app.focused = Math.min(app.visible.length - 1, Math.max(0, app.focused + delta))
   }
+
+  // Whatever moved the selection (keys, auto-advance, a click), keep it in view.
+  $effect(() => {
+    const i = app.focused
+    if (i < app.visible.length) get(virtualizer).scrollToIndex(i, { align: 'auto' })
+  })
 
   const isTyping = (e: KeyboardEvent) => {
     const el = e.target as HTMLElement | null
@@ -47,7 +51,12 @@
     )
   }
 
-  // Keyboard: a/u/r/s decide for the selected station, j/k move, / focuses search.
+  /**
+   * Keys for the left hand while the right one stays on the mouse. Physical
+   * positions (KeyboardEvent.code), so they work in any keyboard layout,
+   * Cyrillic included: 1–4 decide in button order, W/S move, Q/E jump to the
+   * previous/next undecided station, F searches. Arrows move too.
+   */
   function onkeydown(e: KeyboardEvent) {
     if (e.ctrlKey || e.metaKey || e.altKey) return
     if (isTyping(e)) {
@@ -55,27 +64,40 @@
       return
     }
     const row = app.visible[app.focused]
-    switch (e.key) {
-      case 'j':
+    switch (e.code) {
+      case 'KeyS':
+      case 'ArrowDown':
         move(1)
         break
-      case 'k':
+      case 'KeyW':
+      case 'ArrowUp':
         move(-1)
         break
-      case '/':
+      case 'KeyE':
+        app.jumpUndecided(1)
+        break
+      case 'KeyQ':
+        app.jumpUndecided(-1)
+        break
+      case 'KeyF':
+      case 'Slash':
         document.getElementById('search')?.focus()
         break
-      case 'a':
-        if (row) void act.add(app, row)
+      case 'Digit1':
+      case 'Numpad1':
+        if (row) void act.andAdvance(app, row, act.update(app, row))
         break
-      case 'u':
-        if (row) void act.update(app, row)
+      case 'Digit2':
+      case 'Numpad2':
+        if (row) void act.andAdvance(app, row, act.add(app, row))
         break
-      case 's':
-        if (row) void act.skip(app, row)
-        break
-      case 'r':
+      case 'Digit3':
+      case 'Numpad3':
         if (row) app.rejectRequest = row.candidate.sourceId
+        break
+      case 'Digit4':
+      case 'Numpad4':
+        if (row) void act.andAdvance(app, row, act.skip(app, row))
         break
       default:
         return

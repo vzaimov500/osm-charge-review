@@ -52,10 +52,10 @@ async function decideAndPlan(page: Page) {
   // Keyboard shortcuts are ignored while a form control has focus.
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
   const rows = page.locator('.li')
-  await page.locator('body').press('a')
+  await page.locator('body').press('2')
   await expect(rows.nth(0)).toHaveAttribute('data-decision', 'add')
-  await page.locator('body').press('j')
-  await page.locator('body').press('a')
+  await expect(rows.nth(1)).toHaveClass(/sel/) // moved on by itself
+  await page.locator('body').press('2')
   await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
   await page.getByRole('button', { name: /^Upload · \d+ ready$/ }).click()
   await page.getByRole('button', { name: 'Plan batches from ready decisions' }).click()

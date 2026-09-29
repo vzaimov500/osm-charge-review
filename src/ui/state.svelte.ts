@@ -43,6 +43,8 @@ import {
   type LiveSettings,
   type RowModel,
   batchStateOf,
+  mayAdvanceFrom,
+  nextUndecided,
   type BatchState,
 } from '../review'
 import { importDataset, listDatasets, loadCandidates, type ImportSummary } from '../store/datasets'
@@ -140,6 +142,8 @@ export class AppState {
   pendingImport = $state.raw<{ file: StateFile; plan: ImportPlan; name: string } | null>(null)
   /** Set by the keyboard handler to open the reject-reason picker on a row. */
   rejectRequest = $state<string | null>(null)
+  /** After a decision, jump to the next undecided station (a remembered setting). */
+  autoAdvance = $state(true)
 
   rows: RowModel[] = $derived.by(() => {
     const objectsByKey = new Map(this.objects.map((o) => [osmKey(o), o]))
@@ -201,6 +205,7 @@ export class AppState {
     }
     this.filters = filtersFromQuery(location.search)
     this.datasets = await listDatasets(this.db)
+    if ((await this.db.get('setting', 'autoAdvance'))?.value === false) this.autoAdvance = false
     const env = (await this.db.get('setting', 'environment'))?.value
     if (env === 'sandbox' || env === 'live') this.target = env
     const last = (await this.db.get('setting', 'lastDataset'))?.value
@@ -374,6 +379,30 @@ export class AppState {
   /** Seconds until the pacing delay allows the next batch. */
   get pacingWaitS(): number {
     return Math.max(0, Math.ceil((this.lastBatchAt + this.batchDelayS * 1000 - Date.now()) / 1000))
+  }
+
+  async setAutoAdvance(on: boolean): Promise<void> {
+    this.autoAdvance = on
+    await this.db?.put('setting', { key: 'autoAdvance', value: on })
+  }
+
+  /**
+   * After a completed decision on `sourceId`: move to the next undecided
+   * station, unless the row still needs a look (a conflict to tick).
+   */
+  advanceFrom(sourceId: string): void {
+    if (!this.autoAdvance) return
+    const i = this.visible.findIndex((r) => r.candidate.sourceId === sourceId)
+    // Gone from the list (e.g. only undecided shown): the next row already sits at `focused`.
+    if (i < 0 || !mayAdvanceFrom(this.visible[i]!)) return
+    const next = nextUndecided(this.visible, i)
+    if (next !== undefined) this.focused = next
+  }
+
+  /** n / p: the next or previous undecided station. */
+  jumpUndecided(dir: 1 | -1): void {
+    const next = nextUndecided(this.visible, this.focused, dir)
+    if (next !== undefined) this.focused = next
   }
 
   /** Decided Add/Update rows not yet uploaded (superseded rows are not decided). */

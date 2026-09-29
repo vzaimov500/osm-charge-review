@@ -85,3 +85,14 @@ export function reconfirm(app: AppState, row: RowModel): Promise<string[]> {
   const { decidedAt: _a, contentHash: _h, superseded: _s, ...rest } = d
   return app.decide(row, rest)
 }
+
+/** Run a decision, then move on when it succeeded and nothing is left to look at. */
+export async function andAdvance(
+  app: AppState,
+  row: RowModel,
+  decision: Promise<string[]>,
+): Promise<string[]> {
+  const problems = await decision
+  if (problems.length === 0) app.advanceFrom(row.candidate.sourceId)
+  return problems
+}

@@ -1,6 +1,14 @@
 import { describe, expect, test } from 'vitest'
 import { MATCH_CLASSES } from '../../../src/match'
-import { ACTIONS, batchStateOf, MATCH_CHAR, statusCode, type RowModel } from '../../../src/review'
+import {
+  ACTIONS,
+  batchStateOf,
+  MATCH_CHAR,
+  mayAdvanceFrom,
+  nextUndecided,
+  statusCode,
+  type RowModel,
+} from '../../../src/review'
 import { cand, decision, rows } from './helpers'
 
 const base = rows([cand()], [])[0]!
@@ -60,4 +68,26 @@ describe('batchStateOf', () => {
     ['failed', undefined],
     ['reverted', undefined],
   ])('%s → %s', (s, want) => expect(batchStateOf(s)).toBe(want))
+})
+
+describe('nextUndecided / mayAdvanceFrom (auto-advance and n / p)', () => {
+  const r = (decided: boolean) => row({ decided })
+  const list = [r(true), r(false), r(true), r(false)]
+
+  test('forward skips decided rows and never returns the start', () => {
+    expect(nextUndecided(list, 0)).toBe(1)
+    expect(nextUndecided(list, 1)).toBe(3)
+    expect(nextUndecided(list, 3)).toBeUndefined()
+  })
+
+  test('backward', () => {
+    expect(nextUndecided(list, 3, -1)).toBe(1)
+    expect(nextUndecided(list, 1, -1)).toBeUndefined()
+  })
+
+  test('only rows without anything to look at advance', () => {
+    expect(mayAdvanceFrom(row({ warnings: ['recent_human_edit'] }))).toBe(true)
+    expect(mayAdvanceFrom(row({ warnings: ['conflicts'] }))).toBe(false)
+    expect(mayAdvanceFrom(row({ warnings: ['superseded'] }))).toBe(false)
+  })
 })

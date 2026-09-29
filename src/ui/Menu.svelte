@@ -42,6 +42,17 @@
       {/if}
     </section>
     <section>
+      <h2>{t('menu.review')}</h2>
+      <label class="check"
+        ><input
+          type="checkbox"
+          checked={app.autoAdvance}
+          onchange={(e) => void app.setAutoAdvance(e.currentTarget.checked)}
+        />
+        {t('menu.autoAdvance')}</label
+      >
+    </section>
+    <section>
       <h2>{t('env.endpoint')}</h2>
       <p>{t('menu.overpassHint')}</p>
       <select bind:value={app.endpoint} aria-label={t('env.endpoint')}>
@@ -127,5 +138,9 @@
     flex-direction: column;
     gap: 0.2rem;
     width: 100%;
+  }
+  label.check {
+    flex-direction: row;
+    align-items: center;
   }
 </style>

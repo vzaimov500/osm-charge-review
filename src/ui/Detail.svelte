@@ -103,9 +103,9 @@
 
   function choose(a: 'add' | 'update' | 'reject' | 'skip') {
     problem = null
-    if (a === 'add') void run(act.add(app, row))
-    if (a === 'update') void run(act.update(app, row))
-    if (a === 'skip') void run(act.skip(app, row))
+    if (a === 'add') void run(act.andAdvance(app, row, act.add(app, row)))
+    if (a === 'update') void run(act.andAdvance(app, row, act.update(app, row)))
+    if (a === 'skip') void run(act.andAdvance(app, row, act.skip(app, row)))
     if (a === 'reject') rejectOpen = true
   }
 
@@ -224,7 +224,7 @@
 
   <div class="decide">
     <div class="actions" role="radiogroup" aria-label="decision">
-      {#each ['update', 'add', 'reject', 'skip'] as const as a (a)}
+      {#each ['update', 'add', 'reject', 'skip'] as const as a, i (a)}
         <label
           class="action action-{a}"
           class:on={action === a || (a === 'reject' && rejectOpen && !action)}
@@ -237,7 +237,7 @@
             checked={action === a}
             onchange={() => choose(a)}
           />
-          {t(`action.${a}`)} <kbd>{a[0]}</kbd>
+          {t(`action.${a}`)} <kbd>{i + 1}</kbd>
         </label>
       {/each}
     </div>
@@ -250,7 +250,13 @@
             value={row.decision?.reasonCode ?? ''}
             onchange={(e) => {
               rejectOpen = false
-              void run(act.reject(app, row, e.currentTarget.value as RejectReason))
+              void run(
+                act.andAdvance(
+                  app,
+                  row,
+                  act.reject(app, row, e.currentTarget.value as RejectReason),
+                ),
+              )
             }}
           >
             <option value="" disabled>—</option>
