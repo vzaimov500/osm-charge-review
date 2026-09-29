@@ -1,6 +1,6 @@
 <script lang="ts">
   import { MATCH_CLASSES } from '../match'
-  import { ACTIONS, DEFAULT_FILTERS, DISTANCE_BANDS, SORT_KEYS } from '../review'
+  import { ACTIONS, DEFAULT_FILTERS, DISTANCE_BANDS } from '../review'
   import { t } from './i18n'
   import type { AppState } from './state.svelte'
 
@@ -17,21 +17,22 @@
   })
 </script>
 
-<div class="filters">
+<!-- Filters in one column: what is shown in the list. The URL keeps them, so a view can be bookmarked. -->
+<aside class="filters" aria-label={t('filters.title')}>
   <fieldset>
     <legend>{t('filters.class')}</legend>
     {#each MATCH_CLASSES as c (c)}
-      <label
+      <label title={t(`class.${c}`)}
         ><input
           type="checkbox"
           checked={f.classes.includes(c)}
           onchange={() => (app.filters.classes = toggle(f.classes, c))}
         />
-        {c} <small>{app.stats.byClass[c]}</small></label
+        <span class="dot dot-{c}"></span>{c}<small>{app.stats.byClass[c]}</small></label
       >
     {/each}
   </fieldset>
-  <label>
+  <label class="field">
     {t('filters.decided')}
     <select bind:value={app.filters.decided}>
       <option value="all">all</option><option value="undecided">undecided</option><option
@@ -52,7 +53,7 @@
       >
     {/each}
   </fieldset>
-  <label>
+  <label class="field">
     {t('filters.change')}
     <select bind:value={app.filters.change}>
       <option value="all">all</option><option value="update_needed">update needed</option><option
@@ -74,75 +75,92 @@
     {/each}
   </fieldset>
   {#if app.regionNames.length}
-    <label>
+    <label class="field">
       {t('filters.region')}
       <select bind:value={app.filters.region}>
         <option value="">all</option>
         {#each app.regionNames as r (r)}<option value={r}>{r}</option>{/each}
       </select>
     </label>
-  {:else if !app.busy}
-    <!-- Independent of the station data: boundaries always come from live OSM. -->
-    <button type="button" title={t('regions.hint')} onclick={() => void app.loadRegions()}
-      >{t('regions.load')}</button
-    >
   {/if}
   <label
     ><input type="checkbox" bind:checked={app.filters.warningsOnly} />
     {t('filters.warnings')}</label
   >
-  <input
-    id="search"
-    type="search"
-    placeholder={t('filters.search')}
-    bind:value={app.filters.text}
-  />
-  <label>
-    {t('filters.sort')}
-    <select bind:value={app.filters.sort}>
-      {#each SORT_KEYS as k (k)}<option value={k}>{k}</option>{/each}
-    </select>
-  </label>
-  <label><input type="checkbox" bind:checked={app.filters.desc} /> ↓</label>
   <button type="button" onclick={() => (app.filters = { ...DEFAULT_FILTERS })}
     >{t('filters.reset')}</button
   >
-  <span class="count"
-    >{t('filters.showing', { shown: app.visible.length, total: app.rows.length })}</span
-  >
-</div>
+</aside>
 
 <style>
   .filters {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 0.9rem;
-    align-items: center;
-    padding: 0.4rem 0.75rem;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.8rem;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 0.7rem 0.8rem;
+    border-right: 1px solid var(--border);
+    background: var(--bar-bg);
+    font-size: 0.82rem;
+    overflow-y: auto;
+    min-height: 0;
   }
   fieldset {
     border: none;
     padding: 0;
     margin: 0;
     display: flex;
-    gap: 0.4rem;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.2rem;
   }
-  legend {
-    float: left;
-    font-weight: 600;
-    margin-right: 0.2rem;
+  legend,
+  .field {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+    margin-bottom: 0.2rem;
+    padding: 0;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+  .field select {
+    text-transform: none;
+    letter-spacing: normal;
+    width: 100%;
+    font-size: 0.82rem;
+  }
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
   }
   small {
+    margin-left: auto;
     opacity: 0.6;
   }
-  #search {
-    min-width: 16rem;
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
   }
-  .count {
-    margin-left: auto;
-    opacity: 0.8;
+  .dot-linked {
+    background: #1e7a70;
+  }
+  .dot-probable {
+    background: #2f62c9;
+  }
+  .dot-possible {
+    background: #c0671c;
+  }
+  .dot-none {
+    background: #9a978f;
+  }
+  .dot-lifecycle {
+    background: #7b45ae;
   }
 </style>

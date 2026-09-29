@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import DatasetLoader from './ui/DatasetLoader.svelte'
+  import Detail from './ui/Detail.svelte'
   import FilterBar from './ui/FilterBar.svelte'
   import { t } from './ui/i18n'
   import ImportDialog from './ui/ImportDialog.svelte'
@@ -48,8 +49,16 @@
     {/if}
     {#if showStats && ds}<StatsPanel {app} />{/if}
     {#if ds}
-      <FilterBar {app} />
-      <ReviewTable {app} />
+      <!-- Filters · list · the selected station. j / k walk the list; the detail follows. -->
+      <div class="work">
+        <FilterBar {app} />
+        <ReviewTable {app} />
+        {#if app.visible[app.focused]}
+          <Detail row={app.visible[app.focused]!} {app} />
+        {:else}
+          <p class="empty">{t('detail.none')}</p>
+        {/if}
+      </div>
     {:else}
       <main>
         <p>{t('app.tagline')}</p>
@@ -93,7 +102,7 @@
   .toast {
     position: fixed;
     right: 1rem;
-    bottom: 2.2rem;
+    top: 5.2rem;
     z-index: 1800;
     max-width: 34rem;
     display: flex;
@@ -120,5 +129,16 @@
   main {
     padding: 0 0.9rem;
     flex: 1;
+  }
+  .work {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 13rem 22rem minmax(0, 1fr);
+    overflow: hidden;
+  }
+  .empty {
+    padding: 2rem;
+    opacity: 0.7;
   }
 </style>

@@ -26,7 +26,15 @@
     lon,
     radiusM,
     nearby,
-  }: { lat: number; lon: number; radiusM: number; nearby: Nearby[] } = $props()
+    big = false,
+  }: {
+    lat: number
+    lon: number
+    radiusM: number
+    nearby: Nearby[]
+    /** The detail view's map: fills its box, with zoom controls. */
+    big?: boolean
+  } = $props()
 
   let el: HTMLDivElement
   let map: LeafletMap | undefined
@@ -53,9 +61,9 @@
       return
     }
     map = L.map(el, {
-      zoomControl: false,
+      zoomControl: big,
       attributionControl: true,
-      scrollWheelZoom: false,
+      scrollWheelZoom: big,
     }).setView([lat, lon], 18)
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -108,6 +116,12 @@
     draw()
   })
 
+  // One map serves the detail view: follow the selected candidate.
+  $effect(() => {
+    const at: [number, number] = [lat, lon]
+    map?.setView(at, 18)
+  })
+
   $effect(() => {
     observer = new IntersectionObserver((entries) => {
       const visible = entries.some((e) => e.isIntersecting)
@@ -127,7 +141,7 @@
   })
 </script>
 
-<div class="minimap" bind:this={el} aria-label="map">
+<div class="minimap" class:big bind:this={el} aria-label="map">
   {#if paused}<span class="paused">map paused</span>{/if}
 </div>
 
@@ -139,6 +153,12 @@
     border-radius: 4px;
     position: relative;
     flex: none;
+  }
+  .minimap.big {
+    width: 100%;
+    height: 100%;
+    min-height: 240px;
+    border-radius: 8px;
   }
   .paused {
     position: absolute;

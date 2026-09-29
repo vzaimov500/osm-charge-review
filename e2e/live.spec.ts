@@ -101,10 +101,10 @@ test('with everything recorded: typed confirmation, small first batch, dry run b
   await offline(page)
   await loadQueue(page, compatibleQueue())
 
-  const rows = page.locator('article.row')
+  const rows = page.locator('.li')
   for (let i = 0; i < 3; i++) {
     await page.locator('body').press('a')
-    await expect(rows.nth(i).getByRole('radio', { name: /Add/ })).toBeChecked()
+    await expect(rows.nth(i)).toHaveAttribute('data-decision', 'add')
     await page.locator('body').press('j')
   }
 

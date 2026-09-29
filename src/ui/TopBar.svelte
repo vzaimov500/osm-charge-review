@@ -81,9 +81,10 @@
     <button
       type="button"
       disabled={!clientId}
-      title={clientId ? '' : t('env.noClientId')}
-      onclick={() => app.signInClick()}
-      >{t('env.signIn', { server: host(TARGETS[env].authUrl) })}</button
+      title={clientId
+        ? t('env.signIn', { server: host(TARGETS[env].authUrl) })
+        : t('env.noClientId')}
+      onclick={() => app.signInClick()}>{t('env.signInShort')}</button
     >
   {/if}
   {#if app.dataset}
@@ -103,9 +104,10 @@
   .top label,
   .top select {
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .top select {
-    max-width: 16rem;
+    max-width: 14rem;
   }
   .top {
     display: flex;
@@ -130,6 +132,7 @@
     flex: 1;
   }
   .env {
+    flex-shrink: 0;
     display: inline-flex;
     border: 1px solid var(--border);
     border-radius: 8px;

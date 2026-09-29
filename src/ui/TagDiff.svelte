@@ -9,6 +9,7 @@
     selected,
     editable,
     ontoggle,
+    fold = false,
   }: {
     candidateTags: Record<string, string>
     target: TargetView | undefined
@@ -16,7 +17,19 @@
     selected: ReadonlySet<string>
     editable: boolean
     ontoggle: (key: string, on: boolean) => void
+    /** Hide unchanged and OSM-only tags behind one toggle: show what would change first. */
+    fold?: boolean
   } = $props()
+
+  let showAll = $state(false)
+  const quiet = (tag: TagDivergence) => tag.state === 'same' || tag.state === 'only_in_osm'
+  const shown = $derived(
+    target ? target.divergence.tags.filter((tag) => !fold || showAll || !quiet(tag)) : [],
+  )
+  const sameCount = $derived(target?.divergence.tags.filter((x) => x.state === 'same').length ?? 0)
+  const keptCount = $derived(
+    target?.divergence.tags.filter((x) => x.state === 'only_in_osm').length ?? 0,
+  )
 
   const conflicts = $derived(new Set(target?.divergence.conflicts ?? []))
 
@@ -41,7 +54,7 @@
 {#if target}
   <table class="diff">
     <tbody>
-      {#each target.divergence.tags as tag (tag.key)}
+      {#each shown as tag (tag.key)}
         {@const changeable = tag.state === 'missing_in_osm' || tag.state === 'differs'}
         <tr class={kind(tag)}>
           <td class="tick">
@@ -73,6 +86,12 @@
       {/each}
     </tbody>
   </table>
+  {#if fold && sameCount + keptCount > 0}
+    <button type="button" class="fold" onclick={() => (showAll = !showAll)}>
+      {showAll ? '▾' : '▸'}
+      {t('diff.folded', { same: sameCount, kept: keptCount })}
+    </button>
+  {/if}
 {:else}
   <table class="diff">
     <tbody>
@@ -130,6 +149,15 @@
   .conflict {
     background: var(--conflict-bg);
     font-weight: 600;
+  }
+  .fold {
+    margin-top: 0.3rem;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.8rem;
   }
   .old {
     text-decoration: line-through;

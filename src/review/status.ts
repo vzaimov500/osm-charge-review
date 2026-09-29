@@ -1,5 +1,5 @@
 import type { MatchClass } from '../match'
-import type { Action, RowModel } from './rows'
+import type { Action, RowModel, RowWarning } from './rows'
 
 /**
  * A row's state as four fixed-width letters, read like `ls -l`: match,
@@ -30,12 +30,20 @@ export const DECISION_CHAR: Record<Action, string> = {
 }
 export const BATCH_CHAR: Record<BatchState, string> = { planned: 'b', uploaded: 'u', verified: 'v' }
 
+/**
+ * Warnings that are information rather than a call to act: nearly every
+ * station an active local mapper looks after has one, so they would drown
+ * the `!` column. The detail view still shows them.
+ */
+const INFORMATIONAL: readonly RowWarning[] = ['recent_human_edit', 'recent_survey']
+
 export function statusCode(row: RowModel, batch?: BatchState): StatusCode {
+  const needsLook = row.warnings.some((w) => !INFORMATIONAL.includes(w))
   return {
     match: MATCH_CHAR[row.match.class],
     decision: row.decision ? DECISION_CHAR[row.decision.action] : '-',
     batch: batch ? BATCH_CHAR[batch] : '-',
-    attention: row.warnings.includes('superseded') ? '*' : row.warnings.length > 0 ? '!' : '-',
+    attention: row.warnings.includes('superseded') ? '*' : needsLook ? '!' : '-',
   }
 }
 

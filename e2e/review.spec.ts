@@ -16,12 +16,9 @@ test.describe('review queue', () => {
     await expect(page.getByText(/OSM data from .* objects\)/)).toBeVisible()
     expect(net.overpassCalls()).toBe(1)
 
-    // Mini-maps created before the OSM data arrived now show nearby objects too.
-    const probable = page
-      .locator('article.row')
-      .filter({ has: page.locator('.chip.class-probable, .chip.class-linked') })
-      .first()
-    await expect(probable.locator('.minimap path[stroke="#2563eb"]')).toHaveCount(1)
+    // The detail map shows the nearby OSM objects once the data has arrived.
+    await page.locator('.li[data-code^="P"], .li[data-code^="L"]').first().click()
+    await expect(page.locator('section.detail .minimap path[stroke="#2563eb"]')).toHaveCount(1)
 
     // Reload within the cache window: no new request.
     await page.reload()
@@ -34,7 +31,7 @@ test.describe('review queue', () => {
     await loadQueue(page)
     const scroller = page.locator('.scroller')
     // Only a window of rows is in the DOM.
-    expect(await page.locator('article.row').count()).toBeLessThan(20)
+    expect(await page.locator('.li').count()).toBeLessThan(60)
     const stats = await scroller.evaluate(async (el) => {
       const frames: number[] = []
       let last = performance.now()
@@ -45,7 +42,7 @@ test.describe('review queue', () => {
         if (running) requestAnimationFrame(tick)
       }
       requestAnimationFrame(tick)
-      for (let y = 0; y < el.scrollHeight; y += 400) {
+      for (let y = 0; y < el.scrollHeight; y += 200) {
         el.scrollTop = y
         await new Promise((r) => requestAnimationFrame(r))
       }
@@ -56,7 +53,7 @@ test.describe('review queue', () => {
     expect(stats.frames).toBeGreaterThan(50)
     // Generous for slow machines; a janky list is far above this.
     expect(stats.p95).toBeLessThan(120)
-    await expect(page.locator('article.row').last()).toBeVisible()
+    await expect(page.locator('.li').last()).toBeVisible()
   })
 
   test('keyboard decisions survive a reload', async ({ page }) => {
@@ -65,24 +62,24 @@ test.describe('review queue', () => {
     await page.getByRole('button', { name: 'Fetch OpenStreetMap data' }).click()
     await expect(page.getByText(/OSM data from/)).toBeVisible()
 
-    const rows = page.locator('article.row')
+    const rows = page.locator('.li')
     // Wait for each decision to show before the next key, as a reviewer would.
     await page.locator('body').press('s') // skip row 1
-    await expect(rows.nth(0).getByRole('radio', { name: /Skip/ })).toBeChecked()
+    await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
     await page.locator('body').press('j')
-    await expect(rows.nth(1)).toHaveClass(/focused/)
+    await expect(rows.nth(1)).toHaveClass(/sel/)
     await page.locator('body').press('a') // add row 2
-    await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
+    await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
     await page.locator('body').press('j')
     await page.locator('body').press('r') // reject row 3 → reason picker
     await page.getByRole('combobox', { name: 'Reason' }).selectOption('duplicate')
-    await expect(rows.nth(2).getByRole('radio', { name: /Reject/ })).toBeChecked()
+    await expect(rows.nth(2)).toHaveAttribute('data-decision', 'reject')
 
     await page.reload()
     await expect(page.getByText('600 of 600')).toBeVisible()
-    await expect(rows.nth(0).getByRole('radio', { name: /Skip/ })).toBeChecked()
-    await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
-    await expect(rows.nth(2).getByRole('radio', { name: /Reject/ })).toBeChecked()
+    await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
+    await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
+    await expect(rows.nth(2)).toHaveAttribute('data-decision', 'reject')
     await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
   })
 
@@ -100,7 +97,7 @@ test.describe('review queue', () => {
     await expect(page.getByText(/1 changed.*1 decisions need re-confirming/)).toBeVisible()
 
     await expect(page.getByRole('button', { name: 'Upload · 0 ready' })).toBeVisible()
-    const row = page.locator('article.row').first()
+    const row = page.locator('section.detail')
     await expect(row.getByText(/changed since decision/)).toBeVisible()
     await row.getByRole('button', { name: 'Re-confirm' }).click()
     await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
@@ -128,12 +125,12 @@ test.describe('review queue', () => {
 test('export, clear browser storage, import: every decision is intact', async ({ page }) => {
   await offline(page)
   await loadQueue(page)
-  const rows = page.locator('article.row')
+  const rows = page.locator('.li')
   await page.locator('body').press('s')
-  await expect(rows.nth(0).getByRole('radio', { name: /Skip/ })).toBeChecked()
+  await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
   await page.locator('body').press('j')
   await page.locator('body').press('a')
-  await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
+  await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
   await expect(page.getByText(/2 decisions since — export now/)).toBeVisible()
 
   const download = page.waitForEvent('download')
@@ -165,7 +162,7 @@ test('export, clear browser storage, import: every decision is intact', async ({
   await expect(page.getByRole('dialog')).toContainText(/Will write 2 decisions, 600 candidates/)
   await page.getByRole('button', { name: 'Import', exact: true }).click()
   await expect(page.getByText(/State imported: 2 decisions written/)).toBeVisible()
-  await expect(rows.nth(0).getByRole('radio', { name: /Skip/ })).toBeChecked()
-  await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
+  await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
+  await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
   await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
 })

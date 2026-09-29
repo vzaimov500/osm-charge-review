@@ -37,6 +37,15 @@ describe('statusCode (read like ls -l: match, decision, batch, attention)', () =
     expect(statusCode(row(), b).batch).toBe(ch)
   })
 
+  test('recent edits and surveys are information, not a call to act', () => {
+    expect(statusCode(row({ warnings: ['recent_human_edit', 'recent_survey'] })).attention).toBe(
+      '-',
+    )
+    expect(statusCode(row({ warnings: ['recent_human_edit', 'adapter_notes'] })).attention).toBe(
+      '!',
+    )
+  })
+
   test('attention: changed by the provider outranks other warnings', () => {
     expect(statusCode(row({ warnings: ['conflicts'] })).attention).toBe('!')
     expect(statusCode(row({ warnings: ['conflicts', 'superseded'] })).attention).toBe('*')
