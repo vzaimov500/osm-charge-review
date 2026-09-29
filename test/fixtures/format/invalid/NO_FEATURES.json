@@ -1,0 +1,23 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "format_version": "1",
+    "dataset_id": "example-bg",
+    "dataset_name": "Example charging stations, Bulgaria",
+    "source_url": "https://example.org/stations.geojson",
+    "licence": "ODbL-1.0",
+    "permission_url": "https://wiki.openstreetmap.org/wiki/Import/Example",
+    "retrieved_at": "2026-09-28T20:14:51Z",
+    "adapter": {
+      "name": "example-adapter",
+      "version": "1.0.0"
+    },
+    "ref_key": "ref:example",
+    "default_tags": {
+      "amenity": "charging_station",
+      "operator": "Example Energy",
+      "network": "Example"
+    }
+  },
+  "features": []
+}

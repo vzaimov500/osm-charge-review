@@ -1,0 +1,73 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.7 375dc00a",
+  "osm3s": {
+    "timestamp_osm_base": "2026-09-28T22:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "node",
+      "id": 1000000001,
+      "lat": 42.6977,
+      "lon": 23.3219,
+      "timestamp": "2025-03-14T09:26:53Z",
+      "version": 3,
+      "changeset": 160000001,
+      "user": "surveyor_bg",
+      "uid": 101,
+      "tags": {
+        "amenity": "charging_station",
+        "operator": "Example Energy",
+        "socket:type2_combo": "2",
+        "capacity": "2"
+      }
+    },
+    {
+      "type": "way",
+      "id": 2000000001,
+      "center": { "lat": 42.1354, "lon": 24.7453 },
+      "timestamp": "2024-11-02T17:03:11Z",
+      "version": 1,
+      "changeset": 150000002,
+      "user": "mapper2",
+      "uid": 102,
+      "tags": { "amenity": "charging_station", "parking": "surface" }
+    },
+    {
+      "type": "node",
+      "id": 1000000002,
+      "lat": 43.2141,
+      "lon": 27.9147,
+      "timestamp": "2026-01-20T11:00:00Z",
+      "version": 5,
+      "changeset": 170000003,
+      "user": "local_mapper",
+      "uid": 103,
+      "tags": { "disused:amenity": "charging_station", "note": "removed after renovation" }
+    },
+    {
+      "type": "node",
+      "id": 1000000003,
+      "lat": 42.5048,
+      "lon": 27.4678,
+      "timestamp": "2026-05-01T08:00:00Z",
+      "version": 2,
+      "changeset": 175000004,
+      "user": "someone_Import",
+      "uid": 104,
+      "tags": { "ref:example": "5" }
+    },
+    {
+      "type": "relation",
+      "id": 3000000001,
+      "center": { "lat": 42.7, "lon": 23.33 },
+      "timestamp": "2023-06-01T00:00:00Z",
+      "version": 7,
+      "changeset": 130000005,
+      "user": "old",
+      "uid": 105,
+      "tags": { "amenity": "charging_station", "type": "site" }
+    }
+  ]
+}

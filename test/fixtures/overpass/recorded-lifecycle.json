@@ -1,0 +1,199 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-09-29T00:59:51Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "node",
+      "id": 9987620327,
+      "lat": 42.738718,
+      "lon": 23.2410093,
+      "timestamp": "2023-05-31T17:39:20Z",
+      "version": 2,
+      "changeset": 136799611,
+      "user": "mapper_02",
+      "uid": 1002,
+      "tags": {
+        "disused:amenity": "charging_station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11615138964,
+      "lat": 42.6679342,
+      "lon": 23.2876355,
+      "timestamp": "2026-02-12T15:43:00Z",
+      "version": 5,
+      "changeset": 178463941,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "brand": "Gigacharger",
+        "brand:wikidata": "Q130044770",
+        "capacity": "1",
+        "was:amenity": "charging_station",
+        "website": "https://gigacharger.net/"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12112118073,
+      "lat": 42.6594598,
+      "lon": 23.2989715,
+      "timestamp": "2024-12-11T19:59:44Z",
+      "version": 6,
+      "changeset": 160183288,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "was:amenity": "charging_station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14156888684,
+      "lat": 42.6267893,
+      "lon": 23.3476925,
+      "timestamp": "2026-09-06T08:28:49Z",
+      "version": 1,
+      "changeset": 188606028,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "brand": "Eldrive",
+        "brand:wikidata": "Q120376381",
+        "construction:amenity": "charging_station",
+        "fixme": "estimated position"
+      }
+    },
+    {
+      "type": "node",
+      "id": 487098809,
+      "lat": 44.1905379,
+      "lon": 27.3540651,
+      "timestamp": "2020-11-16T09:31:05Z",
+      "version": 4,
+      "changeset": 94191956,
+      "user": "mapper_17",
+      "uid": 1017,
+      "tags": {
+        "amenity": "charging_station",
+        "name": "EV charging station",
+        "source": "local knowledge"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3958247069,
+      "lat": 42.6492643,
+      "lon": 23.394566,
+      "timestamp": "2021-01-04T21:32:18Z",
+      "version": 7,
+      "changeset": 96934283,
+      "user": "mapper_03",
+      "uid": 1003,
+      "tags": {
+        "amenity": "charging_station",
+        "amperage": "16",
+        "authentication:nfc": "yes",
+        "bicycle": "yes",
+        "capacity": "2",
+        "motorcar": "yes",
+        "name": "Зарядна екостанция за електромобили",
+        "operator": "ЕЛЕКТРОМОБИЛИ БГ",
+        "scooter": "yes",
+        "socket:cee_blue": "1",
+        "socket:schuko": "1",
+        "voltage": "220"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4022258451,
+      "lat": 44.1487377,
+      "lon": 28.3569987,
+      "timestamp": "2026-08-09T19:24:17Z",
+      "version": 5,
+      "changeset": 187197386,
+      "user": "mapper_18",
+      "uid": 1018,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "MOL Plugee",
+        "brand:wikidata": "Q549181",
+        "opening_hours": "24/7",
+        "operator": "MOL",
+        "operator:wikidata": "Q549181"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4375792723,
+      "lat": 42.6367459,
+      "lon": 23.4151158,
+      "timestamp": "2020-12-19T17:42:38Z",
+      "version": 3,
+      "changeset": 96116882,
+      "user": "mapper_03",
+      "uid": 1003,
+      "tags": {
+        "amenity": "charging_station",
+        "authentication:phone_call": "no",
+        "motorcar": "yes",
+        "name": "KIA Станция за зареждане",
+        "name:en": "KIA Charging Station",
+        "operator": "KIA Motors Bulgaria",
+        "socket:chademo": "1",
+        "socket:type2": "1",
+        "socket:type2_combo": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4631729512,
+      "lat": 42.6606867,
+      "lon": 23.3813224,
+      "timestamp": "2026-04-07T19:30:20Z",
+      "version": 4,
+      "changeset": 181017271,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "authentication:membership_card": "yes",
+        "authentication:nfc": "yes",
+        "brand": "Eldrive",
+        "brand:wikidata": "Q120376381",
+        "capacity": "2",
+        "level": "-1",
+        "motorcar": "yes",
+        "name": "The Mall",
+        "socket:type2": "2"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4631981417,
+      "lat": 42.7100552,
+      "lon": 23.2715428,
+      "timestamp": "2023-11-22T09:31:09Z",
+      "version": 4,
+      "changeset": 144317999,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "addr:housenumber": "15",
+        "addr:street": "бул. Царица Йоанна",
+        "amenity": "charging_station",
+        "level": "-1",
+        "name": "Станция за зареждане",
+        "operator": "Mega Mall",
+        "socket:cee_red_16a": "5",
+        "socket:schuko": "5"
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Signing in…</title>
+  </head>
+  <body>
+    <p>Signed in. You can close this window.</p>
+    <script>
+      // osm-auth listens on this channel in the opener (PKCE code exchange happens there).
+      new BroadcastChannel('osm-api-auth-complete').postMessage(window.location.href)
+      window.close()
+    </script>
+  </body>
+</html>

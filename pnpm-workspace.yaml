@@ -1,0 +1,3 @@
+allowBuilds:
+  # tsx works with the prebuilt platform binary; no install script needed.
+  esbuild: false

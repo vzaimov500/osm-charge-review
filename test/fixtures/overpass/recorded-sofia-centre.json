@@ -1,0 +1,1464 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-09-28T22:32:46Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "node",
+      "id": 4632018020,
+      "lat": 42.7002861,
+      "lon": 23.3091447,
+      "timestamp": "2025-06-13T18:04:11Z",
+      "version": 4,
+      "changeset": 167586481,
+      "user": "mapper_01",
+      "uid": 1001,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "2",
+        "contact:phone": "+359 700 17070",
+        "fee": "yes",
+        "motorcar": "yes",
+        "operator": "ProCredit Bank",
+        "socket:schuko": "1",
+        "socket:type2": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5557487456,
+      "lat": 42.6842691,
+      "lon": 23.31811,
+      "timestamp": "2022-08-26T18:11:06Z",
+      "version": 3,
+      "changeset": 125418293,
+      "user": "mapper_02",
+      "uid": 1002,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Kia",
+        "parking:fee": "yes"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6398434545,
+      "lat": 42.6968332,
+      "lon": 23.3323226,
+      "timestamp": "2020-11-02T21:11:43Z",
+      "version": 2,
+      "changeset": 93441226,
+      "user": "mapper_03",
+      "uid": 1003,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "fee": "no",
+        "motorcar": "yes",
+        "opening_hours": "24/7",
+        "operator": "KIA Motors",
+        "socket:type2": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6501480010,
+      "lat": 42.6851021,
+      "lon": 23.3172034,
+      "timestamp": "2023-03-17T16:09:22Z",
+      "version": 7,
+      "changeset": 133794837,
+      "user": "mapper_04",
+      "uid": 1004,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "4",
+        "operator": "Evpoint",
+        "socket:schuko": "2",
+        "socket:type2": "2"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8260706764,
+      "lat": 42.6853169,
+      "lon": 23.3327296,
+      "timestamp": "2023-10-16T17:56:28Z",
+      "version": 4,
+      "changeset": 142677766,
+      "user": "mapper_04",
+      "uid": 1004,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "8",
+        "operator": "Evpoint"
+      }
+    },
+    {
+      "type": "node",
+      "id": 8723614381,
+      "lat": 42.6809714,
+      "lon": 23.3084862,
+      "timestamp": "2023-08-01T06:57:28Z",
+      "version": 5,
+      "changeset": 139283672,
+      "user": "mapper_05",
+      "uid": 1005,
+      "tags": {
+        "access": "yes",
+        "amenity": "charging_station",
+        "capacity": "2",
+        "fee": "yes",
+        "motorcar": "yes",
+        "name": "ЕКО",
+        "operator": "ЕКО",
+        "ref": "ABB",
+        "socket:chademo": "2",
+        "socket:chademo:output": "50",
+        "socket:type1": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9683487770,
+      "lat": 42.7117893,
+      "lon": 23.3015923,
+      "timestamp": "2022-08-02T10:15:56Z",
+      "version": 2,
+      "changeset": 124384090,
+      "user": "mapper_05",
+      "uid": 1005,
+      "tags": {
+        "amenity": "charging_station",
+        "authentication:none": "yes",
+        "capacity": "1",
+        "fee": "no",
+        "socket:type2": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9683506805,
+      "lat": 42.7105423,
+      "lon": 23.3027672,
+      "timestamp": "2022-04-21T18:51:59Z",
+      "version": 1,
+      "changeset": 120015303,
+      "user": "mapper_02",
+      "uid": 1002,
+      "tags": {
+        "amenity": "charging_station",
+        "authentication:none": "yes",
+        "fee": "no",
+        "opening_hours": "Mo-Su 07:00-22:00",
+        "socket:type2": "2"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9683511459,
+      "lat": 42.6895429,
+      "lon": 23.302069,
+      "timestamp": "2026-03-30T17:29:00Z",
+      "version": 5,
+      "changeset": 180640677,
+      "user": "mapper_06",
+      "uid": 1006,
+      "tags": {
+        "amenity": "charging_station",
+        "bicycle": "no",
+        "capacity": "2",
+        "check_date": "2025-07-19",
+        "operator": "Kaufland",
+        "socket:chademo": "1",
+        "socket:type2_cable": "1",
+        "socket:type2_combo": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9683524802,
+      "lat": 42.7034503,
+      "lon": 23.3459936,
+      "timestamp": "2022-04-21T18:51:41Z",
+      "version": 1,
+      "changeset": 120015297,
+      "user": "mapper_02",
+      "uid": 1002,
+      "tags": {
+        "amenity": "charging_station",
+        "authentication:none": "yes",
+        "fee": "no",
+        "socket:type2": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9980330441,
+      "lat": 42.7113709,
+      "lon": 23.3523811,
+      "timestamp": "2023-07-06T23:36:14Z",
+      "version": 2,
+      "changeset": 138207493,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "amenity": "charging_station",
+        "authentication:none": "yes",
+        "fee": "no",
+        "name": "Renault",
+        "operator": "Renault",
+        "operator:wikidata": "Q6686"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9981183452,
+      "lat": 42.6658389,
+      "lon": 23.2889088,
+      "timestamp": "2026-04-07T19:34:44Z",
+      "version": 8,
+      "changeset": 181017442,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "access": "customers",
+        "amenity": "charging_station",
+        "brand": "Eldrive",
+        "brand:wikidata": "Q120376381",
+        "capacity": "2",
+        "check_date": "2025-07-18",
+        "fee": "yes",
+        "ref": "91",
+        "socket:type2": "2"
+      }
+    },
+    {
+      "type": "node",
+      "id": 10306910192,
+      "lat": 42.6945349,
+      "lon": 23.3157184,
+      "timestamp": "2024-10-13T14:43:18Z",
+      "version": 3,
+      "changeset": 157838423,
+      "user": "mapper_04",
+      "uid": 1004,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Charge Point Energy Group"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11381264450,
+      "lat": 42.710257,
+      "lon": 23.3024864,
+      "timestamp": "2023-11-28T11:54:54Z",
+      "version": 1,
+      "changeset": 144545877,
+      "user": "mapper_09",
+      "uid": 1009,
+      "tags": {
+        "amenity": "charging_station"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11738624676,
+      "lat": 42.6739503,
+      "lon": 23.330323,
+      "timestamp": "2025-11-29T18:28:16Z",
+      "version": 5,
+      "changeset": 175286857,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "4",
+        "check_date": "2025-10-17",
+        "operator": "Autel",
+        "operator:wikidata": "Q132727444"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11985218259,
+      "lat": 42.7001057,
+      "lon": 23.343084,
+      "timestamp": "2024-12-11T15:22:23Z",
+      "version": 3,
+      "changeset": 160173261,
+      "user": "mapper_04",
+      "uid": 1004,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "fee": "yes",
+        "motorcar": "yes",
+        "motorcycle": "yes",
+        "operator": "BullCharge"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12255764594,
+      "lat": 42.6668323,
+      "lon": 23.3500953,
+      "timestamp": "2025-11-14T11:22:02Z",
+      "version": 3,
+      "changeset": 174643790,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "Wink Charging",
+        "brand:wikidata": "Q117706556",
+        "capacity": "2",
+        "check_date": "2025-11-14",
+        "covered": "yes",
+        "location": "outdoor"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12297688069,
+      "lat": 42.6660728,
+      "lon": 23.3267176,
+      "timestamp": "2025-11-04T06:14:22Z",
+      "version": 3,
+      "changeset": 174176630,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "Wink Charging",
+        "brand:wikidata": "Q117706556",
+        "capacity": "2"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12390621128,
+      "lat": 42.6657566,
+      "lon": 23.285558,
+      "timestamp": "2025-11-12T12:51:19Z",
+      "version": 6,
+      "changeset": 174558275,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "GigaCharger",
+        "brand:wikidata": "Q130044770",
+        "capacity": "1",
+        "check_date": "2025-11-12",
+        "source": "survey;bing;esri;esri clarity"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12390621129,
+      "lat": 42.6657789,
+      "lon": 23.2854938,
+      "timestamp": "2025-11-12T12:51:19Z",
+      "version": 6,
+      "changeset": 174558275,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "GigaCharger",
+        "brand:wikidata": "Q130044770",
+        "capacity": "1",
+        "check_date": "2025-11-12",
+        "source": "survey;bing;esri;esri clarity"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12506414393,
+      "lat": 42.6818828,
+      "lon": 23.3149316,
+      "timestamp": "2026-02-27T19:43:01Z",
+      "version": 2,
+      "changeset": 179146683,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "Electrocharge",
+        "brand:wikidata": "Q133307258"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12659926888,
+      "lat": 42.6796929,
+      "lon": 23.3150412,
+      "timestamp": "2025-03-13T16:11:50Z",
+      "version": 3,
+      "changeset": 163577112,
+      "user": "mapper_10",
+      "uid": 1010,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "2",
+        "operator": "Kia"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12692328900,
+      "lat": 42.6840534,
+      "lon": 23.3225083,
+      "timestamp": "2026-02-27T19:43:36Z",
+      "version": 2,
+      "changeset": 179146709,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "Electrocharge",
+        "brand:wikidata": "Q133307258",
+        "capacity": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12708356625,
+      "lat": 42.6664123,
+      "lon": 23.2862797,
+      "timestamp": "2025-11-04T06:16:54Z",
+      "version": 4,
+      "changeset": 174176681,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "GigaCharger",
+        "brand:wikidata": "Q130044770",
+        "check_date": "2025-07-18"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12765932789,
+      "lat": 42.6732683,
+      "lon": 23.3307275,
+      "timestamp": "2025-04-30T15:06:00Z",
+      "version": 4,
+      "changeset": 165639491,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "check_date": "2025-04-30"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12794093409,
+      "lat": 42.6675753,
+      "lon": 23.3022815,
+      "timestamp": "2025-04-28T06:59:21Z",
+      "version": 1,
+      "changeset": 165534095,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "check_date": "2024-10"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12857899008,
+      "lat": 42.6986387,
+      "lon": 23.3257272,
+      "timestamp": "2026-05-04T13:18:14Z",
+      "version": 3,
+      "changeset": 182205155,
+      "user": "mapper_11",
+      "uid": 1011,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "Kia Hypercharge",
+        "capacity": "2",
+        "check_date": "2026-05-04",
+        "check_date:capacity": "2025-10-08",
+        "socket:type2_combo": "2",
+        "socket:type2_combo:output": "50"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12875145727,
+      "lat": 42.6977627,
+      "lon": 23.3311529,
+      "timestamp": "2025-05-30T11:36:07Z",
+      "version": 1,
+      "changeset": 166967009,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "check_date": "2025-05-23"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12875198325,
+      "lat": 42.6845408,
+      "lon": 23.3306387,
+      "timestamp": "2026-01-11T10:46:15Z",
+      "version": 4,
+      "changeset": 177090828,
+      "user": "mapper_12",
+      "uid": 1012,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "name": "GigaCharger",
+        "note": "Намира се на уличния стълб от страната на пътното платно",
+        "operator": "Гигачарджър ЕООД",
+        "operator:wikidata": "Q130044770"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12960563531,
+      "lat": 42.6788961,
+      "lon": 23.2951422,
+      "timestamp": "2026-06-30T16:57:03Z",
+      "version": 2,
+      "changeset": 184865840,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "check_date": "2026-06-28"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13082055914,
+      "lat": 42.7088364,
+      "lon": 23.3161682,
+      "timestamp": "2025-08-19T15:34:53Z",
+      "version": 3,
+      "changeset": 170677552,
+      "user": "mapper_04",
+      "uid": 1004,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Gigacharger"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13118697590,
+      "lat": 42.6813676,
+      "lon": 23.3358359,
+      "timestamp": "2026-08-28T20:10:30Z",
+      "version": 3,
+      "changeset": 188167977,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "access": "yes",
+        "amenity": "charging_station",
+        "brand": "Electrocharge",
+        "brand:wikidata": "Q133307258",
+        "capacity:motorcar": "2",
+        "check_date": "2026-05-23",
+        "check_date:capacity:motorcar": "2026-05-23"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13162095842,
+      "lat": 42.6774479,
+      "lon": 23.2813298,
+      "timestamp": "2025-09-22T12:48:01Z",
+      "version": 1,
+      "changeset": 172293361,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13162095843,
+      "lat": 42.6774766,
+      "lon": 23.2813001,
+      "timestamp": "2025-09-22T12:48:01Z",
+      "version": 1,
+      "changeset": 172293361,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13162095844,
+      "lat": 42.6775013,
+      "lon": 23.2812746,
+      "timestamp": "2025-09-22T12:48:01Z",
+      "version": 1,
+      "changeset": 172293361,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13162095845,
+      "lat": 42.6775295,
+      "lon": 23.2812454,
+      "timestamp": "2025-09-22T12:48:01Z",
+      "version": 1,
+      "changeset": 172293361,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13162095846,
+      "lat": 42.6775495,
+      "lon": 23.2812248,
+      "timestamp": "2025-09-22T12:48:01Z",
+      "version": 1,
+      "changeset": 172293361,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13280660688,
+      "lat": 42.6732809,
+      "lon": 23.2893687,
+      "timestamp": "2026-08-07T09:59:16Z",
+      "version": 4,
+      "changeset": 187076502,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "amenity": "charging_station",
+        "check_date": "2026-08-07",
+        "manufacturer": "Sino",
+        "operator": "Electrocharge",
+        "phone": "+359 89 268 7200"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13288660085,
+      "lat": 42.6805943,
+      "lon": 23.3330558,
+      "timestamp": "2026-05-24T08:37:31Z",
+      "version": 5,
+      "changeset": 183096662,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "GigaCharger",
+        "brand:wikidata": "Q130044770",
+        "capacity:motorcar": "1",
+        "check_date": "2026-05-23",
+        "check_date:capacity:motorcar": "2026-05-23"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13289195033,
+      "lat": 42.6658635,
+      "lon": 23.2906188,
+      "timestamp": "2025-11-08T15:19:46Z",
+      "version": 1,
+      "changeset": 174381479,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "amenity": "charging_station",
+        "check_date": "2025-11-08",
+        "source": "MAF;survey"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13298400255,
+      "lat": 42.6633926,
+      "lon": 23.346376,
+      "timestamp": "2025-11-11T21:30:41Z",
+      "version": 1,
+      "changeset": 174531868,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "Electrocharge",
+        "brand:wikidata": "Q133307258",
+        "capacity": "1"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13304964378,
+      "lat": 42.6858197,
+      "lon": 23.2950167,
+      "timestamp": "2026-09-16T08:02:44Z",
+      "version": 3,
+      "changeset": 189097549,
+      "user": "mapper_13",
+      "uid": 1013,
+      "tags": {
+        "amenity": "charging_station",
+        "check_date": "2026-09-16",
+        "fixme": "position,  определено не е точно тук",
+        "name": "GigaCharger",
+        "operator": "Гигачарджър ЕООД",
+        "operator:wikidata": "Q130044770",
+        "source": "MAF;survey"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13359473315,
+      "lat": 42.669717,
+      "lon": 23.3131827,
+      "timestamp": "2026-02-27T14:13:14Z",
+      "version": 4,
+      "changeset": 179133496,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "bicycle": "no",
+        "brand": "EVN",
+        "capacity:motorcar": "2",
+        "check_date": "2026-02-24",
+        "check_date:capacity:motorcar": "2025-12-28",
+        "source": "MAF;survey"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13402003818,
+      "lat": 42.665547,
+      "lon": 23.3251655,
+      "timestamp": "2026-05-04T14:03:49Z",
+      "version": 3,
+      "changeset": 182207338,
+      "user": "mapper_14",
+      "uid": 1014,
+      "tags": {
+        "access": "yes",
+        "addr:city": "София",
+        "amenity": "charging_station",
+        "authentication:app": "yes",
+        "authentication:membership_card": "yes",
+        "branch": "Bulgaria",
+        "brand": "Electrip",
+        "capacity": "4",
+        "contact:website": "https://electripglobal.com/",
+        "covered": "no",
+        "description": "1× 60kW DC CCS2, 3x 22kW AC Type2",
+        "fee": "yes",
+        "manufacturer": "Electrip",
+        "motorcar": "yes",
+        "name": "Electrip - Acibadem City Clinic Tokuda",
+        "network": "Electrip",
+        "opening_hours": "24/7",
+        "parking:fee": "no",
+        "payment:app": "yes",
+        "socket:type2": "3",
+        "socket:type2:output": "22",
+        "socket:type2_combo": "1",
+        "socket:type2_combo:output": "60"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13473083951,
+      "lat": 42.6700304,
+      "lon": 23.2958416,
+      "timestamp": "2026-02-16T16:47:32Z",
+      "version": 2,
+      "changeset": 178638511,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "access": "yes",
+        "amenity": "charging_station",
+        "authentication:app": "yes",
+        "authentication:contactless": "yes",
+        "brand": "Fines Charging",
+        "brand:wikidata": "Q128904354",
+        "capacity": "2",
+        "covered": "no",
+        "description": "2x 240kW DC CCS2 on the rooftop parking",
+        "fee": "yes",
+        "level": "1",
+        "manufacturer": "Autel",
+        "motorcar": "yes",
+        "name": "Fines - T Market Motopista",
+        "name:en": "Fines - T Market Motopista",
+        "network": "Fines Charging",
+        "opening_hours": "24/7",
+        "parking:fee": "no",
+        "payment:app": "yes",
+        "socket:type2_combo": "2",
+        "socket:type2_combo:output": "240kW",
+        "website": "https://finescharging.com/location/LV-SOFIA-TMRKTMOTOPISTA"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13518738961,
+      "lat": 42.7082984,
+      "lon": 23.2803874,
+      "timestamp": "2026-02-02T07:11:04Z",
+      "version": 1,
+      "changeset": 177993165,
+      "user": "mapper_15",
+      "uid": 1015,
+      "tags": {
+        "access": "yes",
+        "addr:city": "София",
+        "addr:postcode": "1309",
+        "addr:street": "Мачуково",
+        "amenity": "charging_station",
+        "authentication:app": "yes",
+        "authentication:contactless": "yes",
+        "brand": "Fines Charging",
+        "brand:wikidata": "Q128904354",
+        "capacity": "2",
+        "covered": "no",
+        "description": "120kW DC CCS2",
+        "fee": "yes",
+        "motorcar": "yes",
+        "name": "Fines - T Market Gevgelyiski",
+        "name:en": "Fines - T Market Gevgelyiski",
+        "network": "Fines Charging",
+        "opening_hours": "24/7",
+        "parking:fee": "no",
+        "payment:app": "yes",
+        "socket:type2_combo": "2",
+        "socket:type2_combo:output": "120kW",
+        "start_date": "2026-01-14",
+        "website": "https://finescharging.com/location/LV-SOFIA-TMRKTGEVGEL"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13519559701,
+      "lat": 42.6723231,
+      "lon": 23.2932864,
+      "timestamp": "2026-08-03T13:41:09Z",
+      "version": 3,
+      "changeset": 186871597,
+      "user": "mapper_13",
+      "uid": 1013,
+      "tags": {
+        "access": "yes",
+        "amenity": "charging_station",
+        "brand": "GigaCharger",
+        "brand:wikidata": "Q130044770",
+        "check_date": "2026-07-30",
+        "level": "0",
+        "name": "GigaCharger",
+        "operator": "Гигачарджър ЕООД",
+        "operator:wikidata": "Q130044770",
+        "phone": "+359 87 744 2442",
+        "support": "wall"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13556759353,
+      "lat": 42.6639523,
+      "lon": 23.2896613,
+      "timestamp": "2026-03-14T17:24:46Z",
+      "version": 3,
+      "changeset": 179868505,
+      "user": "mapper_16",
+      "uid": 1016,
+      "tags": {
+        "access": "yes",
+        "amenity": "charging_station",
+        "brand": "Tesla Supercharger",
+        "brand:wikidata": "Q17089620",
+        "capacity": "8",
+        "fee": "yes",
+        "image": "https://x.com/TeslaCharging/status/2005663755645137107?s=20",
+        "name": "Sofia Supercharger",
+        "opening_hours": "24/7",
+        "operator": "Tesla",
+        "operator:wikidata": "Q478214",
+        "ref:tesla": "414052",
+        "socket:type2_combo": "8",
+        "socket:type2_combo:output": "250 kW",
+        "website": "https://www.tesla.com/findus/location/supercharger/414052"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13623721877,
+      "lat": 42.6878881,
+      "lon": 23.3115812,
+      "timestamp": "2026-03-06T19:19:12Z",
+      "version": 1,
+      "changeset": 179460999,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "check_date": "2026-03-05",
+        "fixme": "verify exact location",
+        "name": "GigaCharger",
+        "operator": "Гигачарджър ЕООД",
+        "operator:wikidata": "Q130044770"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13677480155,
+      "lat": 42.6666406,
+      "lon": 23.3584638,
+      "timestamp": "2026-03-25T11:02:32Z",
+      "version": 1,
+      "changeset": 180401595,
+      "user": "mapper_15",
+      "uid": 1015,
+      "tags": {
+        "access": "yes",
+        "addr:city": "София",
+        "amenity": "charging_station",
+        "authentication:app": "yes",
+        "authentication:membership_card": "yes",
+        "branch": "Bulgaria",
+        "brand": "Electrip",
+        "capacity": "2",
+        "contact:website": "https://electripglobal.com/",
+        "covered": "no",
+        "description": "2x 22kW AC Type2",
+        "fee": "yes",
+        "manufacturer": "Electrip",
+        "motorcar": "yes",
+        "name": "Electrip - Montaji EAD - KAT",
+        "name:en": "Electrip - Montaji EAD - KAT",
+        "network": "Electrip",
+        "opening_hours": "24/7",
+        "parking:fee": "no",
+        "payment:app": "yes",
+        "socket:type2": "2",
+        "socket:type2:output": "22"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13677511901,
+      "lat": 42.7081437,
+      "lon": 23.322038,
+      "timestamp": "2026-03-25T11:06:57Z",
+      "version": 1,
+      "changeset": 180401785,
+      "user": "mapper_15",
+      "uid": 1015,
+      "tags": {
+        "access": "yes",
+        "addr:city": "София",
+        "amenity": "charging_station",
+        "authentication:app": "yes",
+        "authentication:membership_card": "yes",
+        "branch": "Bulgaria",
+        "brand": "Electrip",
+        "capacity": "2",
+        "contact:website": "https://electripglobal.com/",
+        "description": "Underground paid parking",
+        "fee": "yes",
+        "level": "-1",
+        "manufacturer": "Electrip",
+        "motorcar": "yes",
+        "name": "Electrip - Hotel Ramada Sofia",
+        "name:en": "Electrip - Hotel Ramada Sofia",
+        "network": "Electrip",
+        "parking:fee": "yes",
+        "payment:app": "yes",
+        "socket:type2": "2",
+        "socket:type2:output": "22"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13685997707,
+      "lat": 42.7011908,
+      "lon": 23.2843611,
+      "timestamp": "2026-03-28T07:34:49Z",
+      "version": 1,
+      "changeset": 180531134,
+      "user": "mapper_15",
+      "uid": 1015,
+      "tags": {
+        "access": "yes",
+        "addr:city": "София",
+        "addr:housenumber": "33",
+        "addr:postcode": "1330",
+        "addr:street": "Булина Ливада",
+        "amenity": "charging_station",
+        "authentication:app": "yes",
+        "authentication:contactless": "yes",
+        "brand": "Fines Charging",
+        "brand:wikidata": "Q128904354",
+        "capacity": "2",
+        "covered": "no",
+        "description": "120kW DC CCS2",
+        "fee": "yes",
+        "motorcar": "yes",
+        "name": "Fines - T Market Suhodolska",
+        "name:en": "Fines - T Market Suhodolska",
+        "network": "Fines Charging",
+        "opening_hours": "24/7",
+        "parking:fee": "no",
+        "payment:app": "yes",
+        "socket:type2_combo": "2",
+        "socket:type2_combo:output": "120kW",
+        "start_date": "2026-03-30",
+        "website": "https://finescharging.com/location/LV-SOFIA-TMARKETSUHODOLSKA"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13695972396,
+      "lat": 42.6837969,
+      "lon": 23.2973827,
+      "timestamp": "2026-08-28T06:57:51Z",
+      "version": 2,
+      "changeset": 188130968,
+      "user": "mapper_13",
+      "uid": 1013,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "2",
+        "check_date": "2026-08-28",
+        "email": "support@eldrive.eu",
+        "level": "0",
+        "manufacturer": "ELDRIVE",
+        "payment:app": "yes",
+        "phone": "+359 2 419 3476",
+        "ref": "766",
+        "website": "https://www.eldrive.eu"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13763822246,
+      "lat": 42.6652782,
+      "lon": 23.2903194,
+      "timestamp": "2026-09-07T18:28:40Z",
+      "version": 3,
+      "changeset": 188686262,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "Circontrol",
+        "brand:wikidata": "Q104543367",
+        "capacity": "2",
+        "check_date": "2026-09-07",
+        "fixme": "Името на компанията Circontrol е ребрандирано на Circutor според сайта. Но това се вижда на устройството(старото име)."
+      }
+    },
+    {
+      "type": "node",
+      "id": 13763822247,
+      "lat": 42.665371,
+      "lon": 23.2904098,
+      "timestamp": "2026-09-07T18:28:40Z",
+      "version": 4,
+      "changeset": 188686262,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "amenity": "charging_station",
+        "check_date": "2026-09-07",
+        "manufacturer": "Sungrow",
+        "operator": "EVN",
+        "operator:wikidata": "Q872140",
+        "source": "Mapbox;survey"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13763996837,
+      "lat": 42.6871463,
+      "lon": 23.3229501,
+      "timestamp": "2026-04-26T15:20:40Z",
+      "version": 1,
+      "changeset": 181850619,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "GigaCharger",
+        "brand:wikidata": "Q130044770",
+        "check_date": "2026-04-26",
+        "fixme": "assumed position"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13915026850,
+      "lat": 42.6674207,
+      "lon": 23.2833184,
+      "timestamp": "2026-08-11T08:10:34Z",
+      "version": 3,
+      "changeset": 187269784,
+      "user": "mapper_13",
+      "uid": 1013,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "Electrocharge",
+        "brand:wikidata": "Q133307258",
+        "check_date": "2026-08-11",
+        "manufacturer": "El Nexus",
+        "phone": "+359 89 268 7200"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13917398057,
+      "lat": 42.6749285,
+      "lon": 23.2979139,
+      "timestamp": "2026-06-07T13:10:01Z",
+      "version": 1,
+      "changeset": 183780083,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "check_date": "2026-06-06"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13920668141,
+      "lat": 42.6679023,
+      "lon": 23.2876916,
+      "timestamp": "2026-06-08T16:37:12Z",
+      "version": 1,
+      "changeset": 183837865,
+      "user": "mapper_07",
+      "uid": 1007,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "GigaCharger",
+        "fixme": "position",
+        "note": "стълба срещу втория вход"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14085006644,
+      "lat": 42.6683676,
+      "lon": 23.288793,
+      "timestamp": "2026-08-10T08:00:54Z",
+      "version": 1,
+      "changeset": 187215948,
+      "user": "mapper_13",
+      "uid": 1013,
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "brand": "Volvo",
+        "check_date": "2026-08-10"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14085284601,
+      "lat": 42.7101045,
+      "lon": 23.3233997,
+      "timestamp": "2026-09-28T21:14:21Z",
+      "version": 2,
+      "changeset": 189699421,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "level": "0",
+        "name": "P energy-group"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14124347540,
+      "lat": 42.6812215,
+      "lon": 23.2918538,
+      "timestamp": "2026-08-26T07:08:40Z",
+      "version": 1,
+      "changeset": 188026371,
+      "user": "mapper_13",
+      "uid": 1013,
+      "tags": {
+        "amenity": "charging_station",
+        "check_date": "2026-08-26",
+        "level": "0",
+        "manufacturer": "EL NEXUS",
+        "wheelchair": "no"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14132711481,
+      "lat": 42.6792852,
+      "lon": 23.3002437,
+      "timestamp": "2026-08-29T07:08:40Z",
+      "version": 1,
+      "changeset": 188182252,
+      "user": "mapper_13",
+      "uid": 1013,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "check_date": "2026-08-29",
+        "level": "0",
+        "operator": "GigaCharger",
+        "payment:app": "yes",
+        "phone": "+359 87 744 2442",
+        "ref": "10907"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14132711495,
+      "lat": 42.6793907,
+      "lon": 23.3001916,
+      "timestamp": "2026-08-29T07:08:40Z",
+      "version": 1,
+      "changeset": 188182252,
+      "user": "mapper_13",
+      "uid": 1013,
+      "tags": {
+        "amenity": "charging_station",
+        "capacity": "1",
+        "check_date": "2026-08-29",
+        "operator": "GigaCharger",
+        "payment:app": "yes",
+        "phone": "+359 87 744 2442",
+        "ref": "20041"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14157842879,
+      "lat": 42.6952398,
+      "lon": 23.3370595,
+      "timestamp": "2026-09-06T15:58:22Z",
+      "version": 1,
+      "changeset": 188626423,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "check_date": "2026-09-06"
+      }
+    },
+    {
+      "type": "node",
+      "id": 14157842905,
+      "lat": 42.6948514,
+      "lon": 23.3374758,
+      "timestamp": "2026-09-06T15:58:22Z",
+      "version": 1,
+      "changeset": 188626423,
+      "user": "mapper_08",
+      "uid": 1008,
+      "tags": {
+        "amenity": "charging_station",
+        "brand": "GigaCharger",
+        "brand:wikidata": "Q130044770",
+        "capacity": "1",
+        "check_date": "2026-09-06"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1250592578,
+      "timestamp": "2024-05-16T20:24:22Z",
+      "version": 2,
+      "changeset": 151426393,
+      "user": "mapper_08",
+      "uid": 1008,
+      "center": {
+        "lat": 42.660637,
+        "lon": 23.2973588
+      },
+      "nodes": [11624898289, 11624898290, 11624898291, 11624898292, 11624898289],
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1250592579,
+      "timestamp": "2024-05-16T20:24:22Z",
+      "version": 2,
+      "changeset": 151426393,
+      "user": "mapper_08",
+      "uid": 1008,
+      "center": {
+        "lat": 42.6605517,
+        "lon": 23.2975407
+      },
+      "nodes": [11624898293, 11624898294, 11624898295, 11624898296, 11624898293],
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1250689643,
+      "timestamp": "2024-05-16T20:24:22Z",
+      "version": 2,
+      "changeset": 151426393,
+      "user": "mapper_08",
+      "uid": 1008,
+      "center": {
+        "lat": 42.6896217,
+        "lon": 23.3322731
+      },
+      "nodes": [11626065105, 11626065106, 11626065107, 11626065108, 11626065105],
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1250693994,
+      "timestamp": "2024-05-18T18:36:44Z",
+      "version": 2,
+      "changeset": 151507260,
+      "user": "mapper_08",
+      "uid": 1008,
+      "center": {
+        "lat": 42.7120882,
+        "lon": 23.3173299
+      },
+      "nodes": [11626088822, 11626088823, 11626088824, 11626088825, 11626088822],
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1250693995,
+      "timestamp": "2024-02-15T07:28:46Z",
+      "version": 1,
+      "changeset": 147477707,
+      "user": "mapper_08",
+      "uid": 1008,
+      "center": {
+        "lat": 42.7124318,
+        "lon": 23.3174381
+      },
+      "nodes": [11626088826, 11626088827, 11626088828, 11626088829, 11626088826],
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1250695985,
+      "timestamp": "2024-02-15T07:34:50Z",
+      "version": 1,
+      "changeset": 147477923,
+      "user": "mapper_08",
+      "uid": 1008,
+      "center": {
+        "lat": 42.7138152,
+        "lon": 23.3079405
+      },
+      "nodes": [11626115491, 11626115492, 11626115493, 11626115494, 11626115491],
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1250696770,
+      "timestamp": "2024-05-16T20:24:22Z",
+      "version": 2,
+      "changeset": 151426393,
+      "user": "mapper_08",
+      "uid": 1008,
+      "center": {
+        "lat": 42.6771389,
+        "lon": 23.2808789
+      },
+      "nodes": [11626120913, 11626120914, 11626120915, 11626120916, 11626120913],
+      "tags": {
+        "access": "private",
+        "amenity": "charging_station",
+        "capacity": "1",
+        "operator": "Столичен електротранспорт"
+      }
+    }
+  ]
+}

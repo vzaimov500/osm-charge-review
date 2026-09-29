@@ -1,0 +1,167 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "format_version": "1",
+    "dataset_id": "example-bg",
+    "dataset_name": "Example charging stations, Bulgaria",
+    "source_url": "https://example.org/stations.geojson",
+    "licence": "ODbL-1.0",
+    "permission_url": "https://wiki.openstreetmap.org/wiki/Import/Example",
+    "retrieved_at": "2026-09-28T20:14:51Z",
+    "adapter": {
+      "name": "example-adapter",
+      "version": "1.0.0"
+    },
+    "ref_key": "ref:example",
+    "default_tags": {
+      "amenity": "charging_station",
+      "operator": "Example Energy",
+      "network": "Example"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [24.685366, 41.654363]
+      },
+      "properties": {
+        "source_id": "1",
+        "ref": "1",
+        "tags": {
+          "socket:type2_combo": "1",
+          "charging_station:output": "30 kW",
+          "capacity": "1"
+        },
+        "label": "Pamporovo DC",
+        "address": "Pamporovo DC, Bulgaria",
+        "status": "operational",
+        "updated_at": "2026-09-20T00:00:00Z",
+        "position_accuracy_m": 15,
+        "source_raw": {
+          "id": 1
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [23.321868, 42.697708]
+      },
+      "properties": {
+        "source_id": "2",
+        "ref": "2",
+        "tags": {
+          "socket:type2_combo": "2",
+          "charging_station:output": "150 kW",
+          "capacity": "2",
+          "ref:example": "999"
+        },
+        "label": "Sofia Centre",
+        "address": "Sofia Centre, Bulgaria",
+        "status": "operational",
+        "updated_at": "2026-09-20T00:00:00Z",
+        "position_accuracy_m": 15,
+        "source_raw": {
+          "id": 2
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [24.74529, 42.135408]
+      },
+      "properties": {
+        "source_id": "3",
+        "ref": "3",
+        "tags": {
+          "socket:type2": "2",
+          "charging_station:output": "22 kW",
+          "capacity": "2"
+        },
+        "label": "Plovdiv Mall",
+        "address": "Plovdiv Mall, Bulgaria",
+        "status": "operational",
+        "updated_at": "2026-09-20T00:00:00Z",
+        "position_accuracy_m": 15,
+        "source_raw": {
+          "id": 3
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [27.914733, 43.21405]
+      },
+      "properties": {
+        "source_id": "4",
+        "ref": "4",
+        "tags": {
+          "socket:chademo": "1",
+          "socket:type2_combo": "1",
+          "capacity": "2"
+        },
+        "label": "Varna Port",
+        "address": "Varna Port, Bulgaria",
+        "status": "operational",
+        "updated_at": "2026-09-20T00:00:00Z",
+        "position_accuracy_m": 15,
+        "source_raw": {
+          "id": 4
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [27.46781, 42.504792]
+      },
+      "properties": {
+        "source_id": "5",
+        "ref": "5",
+        "tags": {
+          "socket:type2": "1",
+          "capacity": "1"
+        },
+        "label": "Burgas Lake",
+        "address": "Burgas Lake, Bulgaria",
+        "status": "operational",
+        "updated_at": "2026-09-20T00:00:00Z",
+        "position_accuracy_m": 15,
+        "source_raw": {
+          "id": 5
+        }
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [25.61715, 43.080917]
+      },
+      "properties": {
+        "source_id": "6",
+        "ref": "6",
+        "tags": {
+          "socket:type2_combo": "2",
+          "capacity": "2"
+        },
+        "label": "Veliko Tarnovo",
+        "address": "Veliko Tarnovo, Bulgaria",
+        "status": "operational",
+        "updated_at": "2026-09-20T00:00:00Z",
+        "position_accuracy_m": 15,
+        "source_raw": {
+          "id": 6
+        }
+      }
+    }
+  ]
+}
