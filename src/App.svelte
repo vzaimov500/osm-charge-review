@@ -73,6 +73,7 @@
   {:else}
     {#if app.ready}<EnvironmentBar {app} />{/if}
     {#if app.showLiveGate}<LiveGate {app} />{/if}
+    {#if app.showUpload && ds}<UploadPanel {app} />{/if}
     {#if app.notice}
       <div class="notice {app.notice.kind}" role={app.notice.kind === 'error' ? 'alert' : 'status'}>
         {app.notice.text}
@@ -113,9 +114,7 @@
     {#if ds}
       <FilterBar {app} />
       <ReviewTable {app} />
-      <!-- The upload drawer opens right above the bar whose button opened it. -->
-      {#if app.showUpload}<UploadPanel {app} />{/if}
-      <BatchBar {app} />
+      <BatchBar />
     {:else}
       <main>
         <p>{t('app.tagline')}</p>

@@ -51,6 +51,14 @@
         <button type="button" onclick={() => (app.showLiveGate = true)}>{t('env.unlock')}</button>
       {/if}
     </span>
+    {#if app.dataset}
+      <span class="upload">
+        {t('batch.pending', { n: app.readyCount })}
+        <button type="button" class="primary" onclick={() => (app.showUpload = !app.showUpload)}
+          >{app.showUpload ? t('batch.close') : t('batch.apply')}</button
+        >
+      </span>
+    {/if}
     <span>
       {#if app.account}
         {t('env.signedInAs', { account: app.account, server: host(TARGETS[env].authUrl) })}
@@ -125,6 +133,10 @@
   }
   .live {
     color: var(--err-fg);
+  }
+  .primary {
+    font-weight: 600;
+    border: 1px solid var(--accent);
   }
   .locked {
     color: var(--warn-fg);

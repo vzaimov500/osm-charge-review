@@ -95,11 +95,8 @@ export const en = {
   'action.reject': 'Reject',
   'action.skip': 'Skip',
   'batch.pending': '{n} decisions ready',
-  'batch.target': 'Reads and writes: {target}',
   'batch.apply': 'Upload…',
   'batch.close': 'Close upload',
-  'batch.sandbox': 'OSM sandbox (master.apis.dev.openstreetmap.org)',
-  'batch.liveLocked': 'live OpenStreetMap (read only — writing locked)',
   'upload.title': 'Upload',
   'upload.register':
     'Register an OAuth2 application at {url} with redirect URI {redirect} and scopes "Read user preferences" and "Modify the map". No secret is needed (PKCE).',

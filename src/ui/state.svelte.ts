@@ -360,6 +360,16 @@ export class AppState {
     return Math.max(0, Math.ceil((this.lastBatchAt + this.batchDelayS * 1000 - Date.now()) / 1000))
   }
 
+  /** Decided Add/Update rows not yet uploaded (superseded rows are not decided). */
+  get readyCount(): number {
+    return this.rows.filter(
+      (r) =>
+        r.decided &&
+        !r.decision!.uploadedBatchId &&
+        (r.decision!.action === 'add' || r.decision!.action === 'update'),
+    ).length
+  }
+
   /** Edits may be written: always to the sandbox; to live only once unlocked. */
   get canWrite(): boolean {
     return this.target === 'sandbox' || this.liveUnlocked

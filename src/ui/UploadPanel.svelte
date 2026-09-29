@@ -150,7 +150,7 @@
     box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
   }
   .upload {
-    border-top: 2px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
     padding: 0.5rem 0.75rem;
     font-size: 0.82rem;
     max-height: 45vh;
