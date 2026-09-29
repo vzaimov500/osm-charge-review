@@ -16,7 +16,7 @@
 
   const app = new AppState()
   let showStats = $state(false)
-  let showLoader = $state(false)
+  let fileInput = $state<HTMLInputElement>()
 
   onMount(() => {
     void app.init()
@@ -41,9 +41,20 @@
             >{/each}
         </select>
       </label>
-      <button type="button" onclick={() => (showLoader = !showLoader)}
-        >{t('dataset.loadAnother')}</button
-      >
+      <!-- Opens the file picker directly; the loader panel only appears if the file needs attention. -->
+      <input
+        bind:this={fileInput}
+        type="file"
+        data-testid="candidate-file-header"
+        accept=".json,.geojson,application/geo+json,application/json"
+        hidden
+        onchange={(e) => {
+          const f = e.currentTarget.files?.[0]
+          e.currentTarget.value = ''
+          if (f) void app.readFile(f)
+        }}
+      />
+      <button type="button" onclick={() => fileInput?.click()}>{t('dataset.loadAnother')}</button>
       <button type="button" onclick={() => (showStats = !showStats)}>{t('stats.show')}</button>
     {/if}
     {#if app.ready && !app.fatal}<BackupControls {app} />{/if}
@@ -95,7 +106,7 @@
       </div>
     {/if}
 
-    {#if (!ds && app.ready) || showLoader || app.pending}
+    {#if (!ds && app.ready) || app.pending}
       <DatasetLoader {app} />
     {/if}
     {#if showStats && ds}<StatsPanel {app} />{/if}

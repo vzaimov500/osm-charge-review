@@ -120,6 +120,7 @@ export const en = {
   'env.signedInAs': 'Signed in to {server} as {account}',
   'env.signIn': 'Sign in to {server}',
   'env.advanced': 'Own OAuth app (advanced)',
+  'env.noClientId': 'needs an OAuth app for this server — see “Own OAuth app” below',
   'env.clientId': 'OAuth2 client id for {server}',
   'upload.plan': 'Plan batches from ready decisions',
   'upload.planned': '{n} batches planned.',

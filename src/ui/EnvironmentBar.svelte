@@ -59,11 +59,12 @@
         <button type="button" disabled={!clientId} onclick={() => app.signInClick()}
           >{t('env.signIn', { server: host(TARGETS[env].authUrl) })}</button
         >
+        {#if !clientId}<small>{t('env.noClientId')}</small>{/if}
       {/if}
     </span>
   </div>
 
-  <details class="advanced" open={!clientId}>
+  <details class="advanced">
     <summary>{t('env.advanced')}</summary>
     {#if !clientId}
       <p>

@@ -96,8 +96,7 @@ test.describe('review queue', () => {
     doc.features[0].properties.tags.fee = 'no'
     const changed = join(tmpdir(), `queue-changed-${Date.now()}.json`)
     writeFileSync(changed, JSON.stringify(doc))
-    await page.getByRole('button', { name: 'Load file…' }).click()
-    await page.getByTestId('candidate-file').setInputFiles(changed)
+    await page.getByTestId('candidate-file-header').setInputFiles(changed)
     await expect(page.getByText(/1 changed.*1 decisions need re-confirming/)).toBeVisible()
 
     await expect(page.getByText('0 decisions ready')).toBeVisible()
