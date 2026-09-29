@@ -39,7 +39,7 @@ function compatibleQueue(): string {
 }
 
 async function openGate(page: Page) {
-  await page.getByRole('button', { name: 'Apply batch' }).click()
+  await page.getByRole('button', { name: 'Upload…' }).click()
   // Live OSM is read freely; writing needs the gate.
   await expect(page.getByRole('radio', { name: 'Live OSM' })).toBeChecked()
   await expect(page.getByText('Reads and writes: live OpenStreetMap (read only')).toBeVisible()

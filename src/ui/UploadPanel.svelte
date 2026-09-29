@@ -20,6 +20,7 @@
     {#if app.target === 'live'}<strong class="live">LIVE · {t('live.firstBatch')}</strong>{/if}
     <button type="button" class="close" onclick={() => (app.showUpload = false)}>×</button>
   </header>
+  <p class="steps">{t('upload.steps')}</p>
 
   {#if !app.canWrite}
     <p class="locked" role="alert">
@@ -149,7 +150,7 @@
     box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
   }
   .upload {
-    border-bottom: 1px solid var(--border);
+    border-top: 2px solid var(--accent);
     padding: 0.5rem 0.75rem;
     font-size: 0.82rem;
     max-height: 45vh;
@@ -159,6 +160,10 @@
     display: flex;
     gap: 0.75rem;
     align-items: baseline;
+  }
+  .steps {
+    margin: 0.2rem 0;
+    opacity: 0.8;
   }
   h2 {
     font-size: 1rem;

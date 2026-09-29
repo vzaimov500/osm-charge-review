@@ -27,12 +27,16 @@
     })}</span
   >
   <span class="keys">{t('keys.help')}</span>
-  <button type="button" onclick={() => (app.showUpload = !app.showUpload)}
-    >{t('batch.apply')}</button
+  <button type="button" class="primary" onclick={() => (app.showUpload = !app.showUpload)}
+    >{app.showUpload ? t('batch.close') : t('batch.apply')}</button
   >
 </footer>
 
 <style>
+  .primary {
+    font-weight: 600;
+    border: 1px solid var(--accent);
+  }
   .batchbar {
     display: flex;
     gap: 1.5rem;

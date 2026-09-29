@@ -110,10 +110,11 @@
       <DatasetLoader {app} />
     {/if}
     {#if showStats && ds}<StatsPanel {app} />{/if}
-    {#if app.showUpload && ds}<UploadPanel {app} />{/if}
     {#if ds}
       <FilterBar {app} />
       <ReviewTable {app} />
+      <!-- The upload drawer opens right above the bar whose button opened it. -->
+      {#if app.showUpload}<UploadPanel {app} />{/if}
       <BatchBar {app} />
     {:else}
       <main>

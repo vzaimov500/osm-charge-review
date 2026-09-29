@@ -57,7 +57,7 @@ async function decideAndPlan(page: Page) {
   await page.locator('body').press('j')
   await page.locator('body').press('a')
   await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
-  await page.getByRole('button', { name: 'Apply batch' }).click()
+  await page.getByRole('button', { name: 'Upload…' }).click()
   await page.getByRole('button', { name: 'Plan batches from ready decisions' }).click()
   await expect(page.getByText(/batches planned/)).toBeVisible()
 }
@@ -99,7 +99,7 @@ for (const hold of ['after-server', 'before-server'] as const) {
     const again = await context.newPage()
     await offline(again)
     await again.goto('/')
-    await again.getByRole('button', { name: 'Apply batch' }).click()
+    await again.getByRole('button', { name: 'Upload…' }).click()
     await expect(again.getByText(/In flight at step "upload"/)).toBeVisible()
     await again.getByRole('button', { name: 'Recover' }).click()
     if (hold === 'after-server') {

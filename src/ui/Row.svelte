@@ -159,37 +159,51 @@
   </div>
 
   <div class="col tags">
-    {#if row.targets.length > 1 || (action === 'update' && row.targets.length > 0)}
-      <div class="targets" role="radiogroup" aria-label={t('row.target')}>
-        {#each row.targets as tv (tv.object.osmType + tv.object.osmId)}
-          <label class="target">
-            <input
-              type="radio"
-              name={`target-${c.sourceId}`}
-              checked={target?.object.osmId === tv.object.osmId &&
-                target?.object.osmType === tv.object.osmType}
-              disabled={tv.doNotTouch}
-              onchange={() => pickTarget(tv)}
-            />
-            <a
-              href={osmObjectUrl(tv.object.osmType, tv.object.osmId)}
-              target="_blank"
-              rel="noopener">{tv.object.osmType}/{tv.object.osmId}</a
-            >
-            {tv.pair.pairClass} · {fmtDistance(tv.pair.distanceM)}
-            {#if tv === row.suggested}<em>({t('row.suggested')})</em>{/if}
-            <small
-              >{t('row.lastEdit', {
-                user: tv.object.lastEditUser,
-                date: fmtDate(tv.object.lastEditAt),
-              })}</small
-            >
-          </label>
-        {/each}
-      </div>
-    {:else if row.targets.length === 0}
-      <div class="none">{t('row.noTargets')}</div>
-    {/if}
+    <!-- Which object, and whether to move it: one line, above the tags. -->
+    <div class="targetbar">
+      {#if row.targets.length > 1 || (action === 'update' && row.targets.length > 0)}
+        <div class="targets" role="radiogroup" aria-label={t('row.target')}>
+          {#each row.targets as tv (tv.object.osmType + tv.object.osmId)}
+            <label class="target">
+              <input
+                type="radio"
+                name={`target-${c.sourceId}`}
+                checked={target?.object.osmId === tv.object.osmId &&
+                  target?.object.osmType === tv.object.osmType}
+                disabled={tv.doNotTouch}
+                onchange={() => pickTarget(tv)}
+              />
+              <a
+                href={osmObjectUrl(tv.object.osmType, tv.object.osmId)}
+                target="_blank"
+                rel="noopener">{tv.object.osmType}/{tv.object.osmId}</a
+              >
+              {tv.pair.pairClass} · {fmtDistance(tv.pair.distanceM)}
+              {#if tv === row.suggested}<em>({t('row.suggested')})</em>{/if}
+              <small
+                >{t('row.lastEdit', {
+                  user: tv.object.lastEditUser,
+                  date: fmtDate(tv.object.lastEditAt),
+                })}</small
+              >
+            </label>
+          {/each}
+        </div>
+      {:else if row.targets.length === 0}
+        <div class="none">{t('row.noTargets')}</div>
+      {/if}
+      <!-- Offered before Update is chosen: a position-only difference has nothing else to update. -->
+      {#if target?.divergence.moved && (action === 'update' || action === undefined)}
+        <label class="move" title={t('row.moveHint')}>
+          <input
+            type="checkbox"
+            checked={action === 'update' && row.decision?.move === true}
+            onchange={(e) => setMove(e.currentTarget.checked)}
+          />
+          {t('row.move', { d: Math.round(target.divergence.distanceM) })}
+        </label>
+      {/if}
+    </div>
     <TagDiff
       candidateTags={c.tags}
       {target}
@@ -197,17 +211,6 @@
       editable={action === 'update'}
       ontoggle={toggle}
     />
-    <!-- Offered before Update is chosen: a position-only difference has nothing else to update. -->
-    {#if target?.divergence.moved && (action === 'update' || action === undefined)}
-      <label class="move">
-        <input
-          type="checkbox"
-          checked={action === 'update' && row.decision?.move === true}
-          onchange={(e) => setMove(e.currentTarget.checked)}
-        />
-        {t('row.move', { d: Math.round(target.divergence.distanceM) })}
-      </label>
-    {/if}
     {#if row.noop && action !== 'update'}<div class="ok-text">{t('row.noop')}</div>{/if}
   </div>
 
@@ -368,7 +371,6 @@
     display: flex;
     flex-direction: column;
     font-size: 0.78rem;
-    margin-bottom: 0.25rem;
   }
   .actions {
     display: grid;
@@ -416,9 +418,19 @@
     text-align: left;
     font-size: 0.78rem;
   }
+  .targetbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.25rem 1rem;
+    margin-bottom: 0.25rem;
+  }
   .move {
-    display: block;
+    margin-left: auto;
     font-size: 0.78rem;
-    margin-top: 0.25rem;
+    padding: 0.15rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--change-bg);
   }
 </style>
