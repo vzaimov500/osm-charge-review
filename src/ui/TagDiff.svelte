@@ -105,9 +105,11 @@
   }
   .val {
     word-break: break-word;
+    min-width: 7rem;
   }
+  /* Long explanations wrap instead of squeezing the value column. */
   .state {
-    white-space: nowrap;
+    max-width: 12rem;
     font-family: system-ui, sans-serif;
     font-size: 0.72rem;
     opacity: 0.8;
