@@ -174,8 +174,17 @@ export interface Schema extends DBSchema {
 
 export type DB = IDBPDatabase<Schema>
 
-export function openDatabase(name = DB_NAME): Promise<DB> {
+/**
+ * `onClosedElsewhere` runs when another tab (or a storage wipe) needs the
+ * database: this connection closes at once instead of blocking the upgrade or
+ * deletion, and the page must be reloaded to continue.
+ */
+export function openDatabase(name = DB_NAME, onClosedElsewhere?: () => void): Promise<DB> {
   return openDB<Schema>(name, DB_VERSION, {
+    blocking(_current, _blocked, event) {
+      ;(event.target as IDBDatabase).close()
+      onClosedElsewhere?.()
+    },
     upgrade(db, oldVersion) {
       if (oldVersion < 1) {
         db.createObjectStore('dataset', { keyPath: 'datasetId' })

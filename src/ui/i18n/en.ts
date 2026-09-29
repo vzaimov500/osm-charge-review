@@ -3,6 +3,8 @@ export const en = {
   'app.tagline': 'Review charging-station data against OpenStreetMap, one candidate at a time.',
   'app.disclaimer':
     'Not affiliated with or endorsed by the OpenStreetMap Foundation. OpenStreetMap® is a trademark of the OpenStreetMap Foundation. Map data © OpenStreetMap contributors, ODbL.',
+  'storage.closedElsewhere':
+    'Your saved data was changed in another tab, or cleared. Reload the page to continue.',
   'storage.unavailable':
     'Browser storage (IndexedDB) is unavailable — private window or blocked site data? This tool keeps your decisions in browser storage and will not run without it, rather than lose your work.',
   'storage.persisted': 'Storage: persistent',
@@ -46,9 +48,9 @@ export const en = {
   'osm.busy': 'Fetching OpenStreetMap data… one request for the whole area.',
   'filters.class': 'Class',
   'filters.region': 'Region',
-  'regions.load': 'Look up municipalities',
+  'regions.load': 'Load regions',
   'regions.hint':
-    'Finds the municipality or district of every candidate, in one Overpass request using the administrative boundaries in live OpenStreetMap. Used by the Region filter and in changeset comments. Nothing is written.',
+    'Finds the region (municipality or district) of every candidate, in one Overpass request using the administrative boundaries in live OpenStreetMap. Fills the Region filter and names the area in changeset comments. Nothing is written.',
   'regions.busy': 'Looking up administrative areas… one request for all candidates.',
   'filters.decided': 'Decided',
   'filters.action': 'Action',
@@ -112,7 +114,7 @@ export const en = {
   'env.writes': 'Writes to:',
   'env.sandboxServer': 'OSM sandbox ({host})',
   'env.liveMap': 'live OpenStreetMap via',
-  'env.regionsVia': '· municipality names from live OSM via',
+  'env.regionsVia': '· regions from live OSM via',
   'env.liveUnlocked': 'LIVE OpenStreetMap (unlocked for this session)',
   'env.liveLocked': 'nothing — writing to live OSM is locked',
   'env.unlock': 'Unlock…',

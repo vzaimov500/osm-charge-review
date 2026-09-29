@@ -150,8 +150,9 @@ test('export, clear browser storage, import: every decision is intact', async ({
       dbs.map(
         (d) =>
           new Promise((r) => {
+            // The app closes its connection on request, so this completes.
             const q = indexedDB.deleteDatabase(d.name!)
-            q.onsuccess = q.onerror = q.onblocked = r
+            q.onsuccess = q.onerror = r
           }),
       ),
     )

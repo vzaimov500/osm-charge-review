@@ -319,3 +319,19 @@ describe('storage checks', () => {
     expect(isQuotaError(new Error('x'))).toBe(false)
   })
 })
+
+describe('another tab or a storage wipe needs the database', () => {
+  test('this connection closes instead of blocking, and the app is told', async () => {
+    const name = `closing-${Math.random()}`
+    let told = false
+    const open = await openDatabase(name, () => (told = true))
+    await open.put('setting', { key: 'x', value: 1 })
+    const outcome = await new Promise<string>((resolve) => {
+      const q = indexedDB.deleteDatabase(name)
+      q.onsuccess = () => resolve('deleted')
+      q.onblocked = () => resolve('blocked')
+    })
+    expect(outcome).toBe('deleted')
+    expect(told).toBe(true)
+  })
+})

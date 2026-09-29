@@ -178,7 +178,10 @@ export class AppState {
       return
     }
     try {
-      this.db = await openDatabase()
+      this.db = await openDatabase(undefined, () => {
+        this.db = null
+        this.fatal = t('storage.closedElsewhere')
+      })
     } catch {
       this.fatal = t('storage.unavailable')
       return
