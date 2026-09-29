@@ -18,7 +18,12 @@
   <span>{t('batch.pending', { n: ready })}</span>
   <span
     >{t('batch.target', {
-      target: app.target === 'live' ? 'LIVE OpenStreetMap' : t('batch.sandbox'),
+      target:
+        app.target === 'sandbox'
+          ? t('batch.sandbox')
+          : app.liveUnlocked
+            ? 'LIVE OpenStreetMap'
+            : t('batch.liveLocked'),
     })}</span
   >
   <span class="keys">{t('keys.help')}</span>

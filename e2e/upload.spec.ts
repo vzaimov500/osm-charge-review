@@ -46,6 +46,11 @@ async function signedIn(context: BrowserContext) {
 }
 
 async function decideAndPlan(page: Page) {
+  // Sandbox: reads and writes the sandbox (routed to the fake here).
+  await page.getByRole('radio', { name: 'Sandbox (test)' }).check()
+  await expect(page.getByText(/Writes to:\s*OSM sandbox/)).toBeVisible()
+  // Keyboard shortcuts are ignored while a form control has focus.
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
   const rows = page.locator('article.row')
   await page.locator('body').press('a')
   await expect(rows.nth(0).getByRole('radio', { name: /Add/ })).toBeChecked()
@@ -53,8 +58,6 @@ async function decideAndPlan(page: Page) {
   await page.locator('body').press('a')
   await expect(rows.nth(1).getByRole('radio', { name: /Add/ })).toBeChecked()
   await page.getByRole('button', { name: 'Apply batch' }).click()
-  await page.getByLabel('OAuth2 client id').fill('e2e-client')
-  await page.getByLabel('OAuth2 client id').press('Tab')
   await page.getByRole('button', { name: 'Plan batches from ready decisions' }).click()
   await expect(page.getByText(/batches planned/)).toBeVisible()
 }
@@ -66,7 +69,7 @@ test('a batch uploads to the sandbox and prompts for an export', async ({ page, 
   await offline(page)
   await loadQueue(page)
   await decideAndPlan(page)
-  await expect(page.getByText('Signed in as sandbox_tester')).toBeVisible()
+  await expect(page.getByText(/Signed in to .* as sandbox_tester/)).toBeVisible()
   await page.getByRole('button', { name: 'Upload to sandbox' }).first().click()
   await expect(page.getByText(/Batch uploaded: \d+ changes/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Export state' }).first()).toBeVisible()

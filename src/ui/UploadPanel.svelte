@@ -1,14 +1,11 @@
 <script lang="ts">
-  import { redirectUri } from '../osm/auth'
   import { TARGETS } from '../osm/transport/api'
   import { fmtDateTime } from './format'
   import { t } from './i18n'
-  import LiveGate from './LiveGate.svelte'
   import type { AppState } from './state.svelte'
 
   let { app }: { app: AppState } = $props()
   const cfg = $derived(TARGETS[app.target])
-  const clientId = $derived(app.clientIds[app.target])
   let now = $state(Date.now())
   $effect(() => {
     const id = setInterval(() => (now = Date.now()), 1000)
@@ -20,52 +17,18 @@
 <section class="upload" aria-label={t('upload.title')}>
   <header>
     <h2>{t('upload.title')}</h2>
-    <label>
-      {t('upload.target')}
-      <select
-        value={app.target}
-        onchange={(e) => {
-          const v = e.currentTarget.value
-          e.currentTarget.value = app.target // nothing switches until the gate says so
-          if (v === 'live') app.showLiveGate = true
-          else void app.switchToSandbox()
-        }}
-      >
-        <option value="sandbox">{TARGETS.sandbox.label}</option>
-        <option value="live">{TARGETS.live.label}</option>
-      </select>
-    </label>
     {#if app.target === 'live'}<strong class="live">LIVE · {t('live.firstBatch')}</strong>{/if}
     <button type="button" class="close" onclick={() => (app.showUpload = false)}>×</button>
   </header>
 
-  <div class="auth">
-    {#if !clientId}
-      <p>
-        {t('upload.register', {
-          url: `${cfg.authUrl}/oauth2/applications/new`,
-          redirect: redirectUri(),
-        })}
-      </p>
-    {/if}
-    <label>
-      {t('upload.clientId')}
-      <input
-        type="text"
-        value={clientId}
-        size="46"
-        onchange={(e) => void app.setClientId(app.target, e.currentTarget.value)}
-      />
-    </label>
-    {#if app.account}
-      <span>{t('upload.signedInAs', { account: app.account })}</span>
-      <button type="button" onclick={() => app.signOutClick()}>{t('upload.signOut')}</button>
-    {:else}
-      <button type="button" disabled={!clientId} onclick={() => app.signInClick()}
-        >{t('upload.signIn')}</button
-      >
-    {/if}
-  </div>
+  {#if !app.canWrite}
+    <p class="locked" role="alert">
+      {t('env.writeLocked')}
+      <button type="button" onclick={() => (app.showLiveGate = true)}>{t('env.unlock')}</button>
+    </p>
+  {:else if !app.account}
+    <p class="locked">{t('upload.needSignIn')}</p>
+  {/if}
 
   <div class="plan">
     <button type="button" onclick={() => void app.planBatches()}>{t('upload.plan')}</button>
@@ -110,6 +73,7 @@
                   type="button"
                   title={app.target === 'live' && !b.dryRunAt ? t('live.needsDryRun') : ''}
                   disabled={(app.target === 'live' && !b.dryRunAt) ||
+                    !app.canWrite ||
                     !app.account ||
                     !!app.busy ||
                     waitS > 0 ||
@@ -122,8 +86,10 @@
                   >{t('upload.discard')}</button
                 >
               {:else if b.status === 'in_flight' && b.step !== 'verify'}
-                <button type="button" disabled={!!app.busy} onclick={() => void app.recover(b)}
-                  >{t('upload.recover')}</button
+                <button
+                  type="button"
+                  disabled={!!app.busy || !app.canWrite}
+                  onclick={() => void app.recover(b)}>{t('upload.recover')}</button
                 >
               {:else if b.status === 'verified' || (b.status === 'in_flight' && b.step === 'verify')}
                 <button type="button" disabled={!!app.busy} onclick={() => void app.verify(b)}
@@ -131,7 +97,7 @@
                 >
                 <button
                   type="button"
-                  disabled={!app.account || !!app.busy}
+                  disabled={!app.account || !app.canWrite || !!app.busy}
                   onclick={() => void app.planRevert(b)}>{t('revert.revert')}</button
                 >
               {/if}
@@ -142,8 +108,6 @@
     </table>
   {/if}
 </section>
-
-{#if app.showLiveGate}<LiveGate {app} />{/if}
 
 {#if app.pendingRevert}
   {@const r = app.pendingRevert}
@@ -203,7 +167,9 @@
   .close {
     margin-left: auto;
   }
-  .auth,
+  .locked {
+    color: var(--warn-fg);
+  }
   .plan {
     display: flex;
     flex-wrap: wrap;

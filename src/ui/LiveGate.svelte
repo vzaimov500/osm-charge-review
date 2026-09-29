@@ -14,7 +14,9 @@
   let typed = $state('')
   const s = $derived(app.liveSettings)
   const problems = $derived(app.liveProblems)
-  const canSwitch = $derived(problems.length === 0 && !!app.liveAccount && confirmsLive(typed))
+  const canUnlock = $derived(
+    app.target === 'live' && problems.length === 0 && !!app.account && confirmsLive(typed),
+  )
 
   const problemText = (p: GateProblem): string =>
     p === 'waiting_period'
@@ -91,10 +93,12 @@
   {:else}
     <div class="confirm">
       <p>{t('live.apiUrl')} <code>{TARGETS.live.apiUrl}</code></p>
-      {#if app.liveAccount}
-        <p>{t('live.account')} <strong>{app.liveAccount}</strong></p>
+      {#if app.account}
+        <p>{t('live.account')} <strong>{app.account}</strong></p>
       {:else}
-        <button type="button" onclick={() => app.liveSignInClick()}>{t('live.signIn')}</button>
+        <button type="button" disabled={!app.clientIds.live} onclick={() => app.signInClick()}
+          >{t('live.signIn')}</button
+        >
       {/if}
       <label>{t('live.type')} <input type="text" bind:value={typed} autocomplete="off" /></label>
     </div>
@@ -104,8 +108,8 @@
     <button
       type="button"
       class="danger"
-      disabled={!canSwitch}
-      onclick={() => void app.switchToLive(typed)}>{t('live.switch')}</button
+      disabled={!canUnlock}
+      onclick={() => void app.unlockLive(typed)}>{t('live.switch')}</button
     >
     <button type="button" onclick={() => (app.showLiveGate = false)}>{t('loader.cancel')}</button>
   </div>

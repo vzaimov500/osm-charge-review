@@ -101,9 +101,15 @@ export class AppState {
   focused = $state(0)
   /** "Last exported" indicator. */
   exportInfo = $state.raw<{ lastExportAt?: string; decisionsSince: number }>({ decisionsSince: 0 })
-  // ---- Upload ----
-  /** Sandbox is the default on first run. Live stays unreachable until the live gate is passed. */
-  target = $state<ApiTarget>('sandbox')
+  // ---- Environment and upload ----
+  /**
+   * The environment: where OSM data is read from AND where edits are written,
+   * always the same server. Reading live OSM is always allowed; writing to it
+   * needs the live gate (`liveUnlocked`).
+   */
+  target = $state<ApiTarget>('live')
+  /** Writing to live OSM was unlocked through the gate — for this session only. */
+  liveUnlocked = $state(false)
   clientIds = $state<Record<ApiTarget, string>>({ ...BUILT_IN_CLIENT_IDS })
   account = $state<string | null>(null)
   batches = $state.raw<BatchRecord[]>([])
@@ -117,7 +123,6 @@ export class AppState {
   // ---- Live gating ----
   liveSettings = $state<LiveSettings>(structuredClone(EMPTY_LIVE_SETTINGS))
   showLiveGate = $state(false)
-  liveAccount = $state<string | null>(null)
   liveProblems: GateProblem[] = $derived(
     liveGateProblems(this.liveSettings, {
       licenceStatus: this.dataset?.info.licence_status ?? 'unverified',
@@ -180,8 +185,8 @@ export class AppState {
     }
     this.filters = filtersFromQuery(location.search)
     this.datasets = await listDatasets(this.db)
-    if ((await this.db.get('setting', 'stationSource'))?.value === 'sandbox')
-      this.stationSource = 'sandbox'
+    const env = (await this.db.get('setting', 'environment'))?.value
+    if (env === 'sandbox' || env === 'live') this.target = env
     const last = (await this.db.get('setting', 'lastDataset'))?.value
     const pick = this.datasets.find((d) => d.datasetId === last) ?? this.datasets[0]
     if (pick) await this.selectDataset(pick.datasetId)
@@ -254,11 +259,6 @@ export class AppState {
     if (target === this.target) {
       this.account = null
       if (signedIn) await this.loadAccount()
-    }
-    // The live account is shown in the gate before switching.
-    if (target === 'live') {
-      this.liveAccount = null
-      if (signedIn) await this.loadLiveAccount()
     }
   }
 
@@ -360,8 +360,19 @@ export class AppState {
     return Math.max(0, Math.ceil((this.lastBatchAt + this.batchDelayS * 1000 - Date.now()) / 1000))
   }
 
+  /** Edits may be written: always to the sandbox; to live only once unlocked. */
+  get canWrite(): boolean {
+    return this.target === 'sandbox' || this.liveUnlocked
+  }
+
+  private refuseLockedWrite(): boolean {
+    if (this.canWrite) return false
+    this.notice = { kind: 'error', text: t('env.writeLocked') }
+    return true
+  }
+
   async uploadBatch(b: BatchRecord): Promise<void> {
-    if (!this.db || !this.dataset || !this.account) return
+    if (!this.db || !this.dataset || !this.account || this.refuseLockedWrite()) return
     const ctx = this.ctx()
     await this.withBusy(t('upload.busy'), async () => {
       const out = await runBatch(ctx, b.id)
@@ -374,7 +385,7 @@ export class AppState {
   }
 
   async recover(b: BatchRecord): Promise<void> {
-    if (!this.db || !this.dataset) return
+    if (!this.db || !this.dataset || this.refuseLockedWrite()) return
     const ctx = {
       db: this.db,
       api: this.api(),
@@ -413,47 +424,49 @@ export class AppState {
       })
   }
 
-  /** Sign in to the live API from the gate dialog (synchronous up to the popup). */
-  liveSignInClick(): void {
-    signIn('live', this.clientIds.live, (err) => {
-      if (err) this.notice = { kind: 'error', text: `Sign-in failed: ${err.message}` }
-      else void this.loadLiveAccount()
-    })
-  }
-
-  async loadLiveAccount(): Promise<void> {
-    try {
-      this.liveAccount = (
-        await apiFor('live', this.clientIds.live, dbNetworkLogger(this.db!)).userDetails()
-      ).displayName
-    } catch {
-      this.liveAccount = null
+  /** Switch environment: both reading and writing move to the other server. */
+  async setEnvironment(env: ApiTarget): Promise<void> {
+    if (env === this.target) return
+    this.target = env
+    this.liveUnlocked = false
+    this.showLiveGate = false
+    this.pendingRevert = null
+    this.account = null
+    if (this.db) {
+      await this.db.put('setting', { key: 'environment', value: env })
+      await appendEvent(this.db, {
+        at: new Date().toISOString(),
+        type: 'environment_switched',
+        ...(this.dataset ? { datasetId: this.dataset.datasetId } : {}),
+        apiTarget: env,
+        data: { to: env, apiUrl: TARGETS[env].apiUrl },
+      })
     }
+    if (isSignedIn(env, this.clientIds[env])) await this.loadAccount()
+    await this.loadCachedObjects()
+    await this.loadBatches()
   }
 
-  /** Switch to live: only with no gate problems, a signed-in live account, and the typed word. */
-  async switchToLive(typed: string): Promise<boolean> {
-    if (this.liveProblems.length > 0 || !this.liveAccount || !confirmsLive(typed)) return false
-    this.target = 'live'
-    this.account = this.liveAccount
+  /** Unlock writing to live: only with no gate problems, a signed-in live account, and the typed word. */
+  async unlockLive(typed: string): Promise<boolean> {
+    if (
+      this.target !== 'live' ||
+      this.liveProblems.length > 0 ||
+      !this.account ||
+      !confirmsLive(typed)
+    )
+      return false
+    this.liveUnlocked = true
     this.showLiveGate = false
     await appendEvent(this.db!, {
       at: new Date().toISOString(),
-      type: 'target_switched',
+      type: 'live_write_unlocked',
       ...(this.dataset ? { datasetId: this.dataset.datasetId } : {}),
       apiTarget: 'live',
-      account: this.liveAccount,
-      data: { to: 'live', apiUrl: TARGETS.live.apiUrl },
+      account: this.account,
+      data: { apiUrl: TARGETS.live.apiUrl },
     })
-    await this.loadBatches()
     return true
-  }
-
-  async switchToSandbox(): Promise<void> {
-    this.target = 'sandbox'
-    this.account = null
-    if (isSignedIn('sandbox', this.clientIds.sandbox)) await this.loadAccount()
-    await this.loadBatches()
   }
 
   /** Read-back on demand. */
@@ -487,7 +500,7 @@ export class AppState {
   /** Revert step 2: the operator confirmed the plan. */
   async confirmRevert(): Promise<void> {
     const p = this.pendingRevert
-    if (!p || !this.account) return
+    if (!p || !this.account || this.refuseLockedWrite()) return
     this.pendingRevert = null
     await this.withBusy(t('revert.busy'), async () => {
       const out = await revertBatch(this.ctx(), p.batch.id)
@@ -607,18 +620,9 @@ export class AppState {
 
   // ---- OSM data and matching ---------------------------------------------------
 
-  /**
-   * Where station data comes from. Overpass mirrors live OSM only; the sandbox
-   * is read through its own API. Independent of the upload
-   * target: reviewing against live data while uploading to the sandbox is the
-   * normal first run — for new stations.
-   */
-  stationSource = $state<StationSource>('overpass')
-
-  async setStationSource(s: StationSource): Promise<void> {
-    this.stationSource = s
-    await this.db?.put('setting', { key: 'stationSource', value: s })
-    await this.loadCachedObjects()
+  /** Station data follows the environment: Overpass mirrors live OSM; the sandbox is read through its API. */
+  get stationSource(): StationSource {
+    return this.target === 'sandbox' ? 'sandbox' : 'overpass'
   }
 
   /** The stored snapshot for the current target, if any (none after switching targets). */

@@ -40,8 +40,11 @@ function compatibleQueue(): string {
 
 async function openGate(page: Page) {
   await page.getByRole('button', { name: 'Apply batch' }).click()
-  await page.getByLabel('Target').selectOption('live')
-  const gate = page.getByRole('dialog', { name: 'Switch to LIVE OpenStreetMap' })
+  // Live OSM is read freely; writing needs the gate.
+  await expect(page.getByRole('radio', { name: 'Live OSM' })).toBeChecked()
+  await expect(page.getByText('Reads and writes: live OpenStreetMap (read only')).toBeVisible()
+  await page.getByRole('button', { name: 'Unlock…' }).first().click()
+  const gate = page.getByRole('dialog', { name: 'Unlock writing to LIVE OpenStreetMap' })
   await expect(gate).toBeVisible()
   return gate
 }
@@ -67,11 +70,11 @@ test('live is unreachable with the required URLs unset', async ({ page, context 
     /wiki page URL is missing/,
     /forum thread URL is missing/,
   ])
-  await expect(gate.getByRole('button', { name: 'Switch to LIVE' })).toBeDisabled()
+  await expect(gate.getByRole('button', { name: 'Unlock writing to LIVE' })).toBeDisabled()
   await expect(gate.getByLabel('Type "live" to confirm')).toHaveCount(0)
   await gate.getByRole('button', { name: 'Cancel' }).click()
-  await expect(page.getByLabel('Target')).toHaveValue('sandbox')
-  await expect(page.getByText('Target: OSM sandbox')).toBeVisible()
+  await expect(page.getByText('Reads and writes: live OpenStreetMap (read only')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Upload to live' })).toHaveCount(0)
   expect(fake.requests.filter((r) => r.method !== 'GET')).toHaveLength(0)
 })
 
@@ -82,7 +85,7 @@ test('an incompatible licence alone keeps live locked', async ({ page, context }
   await loadQueue(page) // LicenseRef-pending
   const gate = await openGate(page)
   await expect(gate.locator('[data-problem="licence_not_compatible"]')).toBeVisible()
-  await expect(gate.getByRole('button', { name: 'Switch to LIVE' })).toBeDisabled()
+  await expect(gate.getByRole('button', { name: 'Unlock writing to LIVE' })).toBeDisabled()
 })
 
 test('with everything recorded: typed confirmation, small first batch, dry run before upload, tagged changeset', async ({
@@ -122,11 +125,11 @@ test('with everything recorded: typed confirmation, small first batch, dry run b
 
   const confirm = gate.getByLabel('Type "live" to confirm')
   await confirm.fill('yes')
-  await expect(gate.getByRole('button', { name: 'Switch to LIVE' })).toBeDisabled()
+  await expect(gate.getByRole('button', { name: 'Unlock writing to LIVE' })).toBeDisabled()
   await confirm.fill('live')
-  await gate.getByRole('button', { name: 'Switch to LIVE' }).click()
+  await gate.getByRole('button', { name: 'Unlock writing to LIVE' }).click()
   await expect(page.getByText(/^LIVE · First live batches/)).toBeVisible()
-  await expect(page.getByText('Target: LIVE OpenStreetMap')).toBeVisible()
+  await expect(page.getByText('Reads and writes: LIVE OpenStreetMap')).toBeVisible()
 
   await page.getByRole('button', { name: 'Plan batches from ready decisions' }).click()
   const upload = page.getByRole('button', { name: 'Upload to live' }).first()

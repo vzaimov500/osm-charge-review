@@ -3,14 +3,15 @@
   import BackupControls from './ui/BackupControls.svelte'
   import BatchBar from './ui/BatchBar.svelte'
   import DatasetLoader from './ui/DatasetLoader.svelte'
+  import EnvironmentBar from './ui/EnvironmentBar.svelte'
   import FilterBar from './ui/FilterBar.svelte'
+  import LiveGate from './ui/LiveGate.svelte'
   import { fmtDateTime } from './ui/format'
   import { t } from './ui/i18n'
   import ReviewTable from './ui/ReviewTable.svelte'
   import { AppState } from './ui/state.svelte'
   import StatsPanel from './ui/StatsPanel.svelte'
   import UploadPanel from './ui/UploadPanel.svelte'
-  import { OVERPASS_ENDPOINTS } from './osm/transport/overpass'
   import { TOOL_NAME, TOOL_VERSION } from './version'
 
   const app = new AppState()
@@ -59,6 +60,8 @@
   {#if app.fatal}
     <main class="fatal" role="alert">{app.fatal}</main>
   {:else}
+    {#if app.ready}<EnvironmentBar {app} />{/if}
+    {#if app.showLiveGate}<LiveGate {app} />{/if}
     {#if app.notice}
       <div class="notice {app.notice.kind}" role={app.notice.kind === 'error' ? 'alert' : 'status'}>
         {app.notice.text}
@@ -88,18 +91,6 @@
           {:else}{t('osm.none')}
             <button type="button" onclick={() => void app.fetchOsm(false)}>{t('osm.fetch')}</button
             >{/if}
-          <select
-            aria-label={t('osm.source')}
-            value={app.stationSource === 'sandbox' ? 'sandbox' : app.endpoint}
-            onchange={(e) => {
-              const v = e.currentTarget.value
-              if (v !== 'sandbox') app.endpoint = v
-              void app.setStationSource(v === 'sandbox' ? 'sandbox' : 'overpass')
-            }}
-          >
-            {#each OVERPASS_ENDPOINTS as e (e)}<option value={e}>{new URL(e).host}</option>{/each}
-            <option value="sandbox">{t('osm.sourceSandbox')}</option>
-          </select>
         </span>
       </div>
     {/if}
