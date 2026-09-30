@@ -206,3 +206,38 @@ test('export, clear browser storage, import: every decision is intact', async ({
   await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
   await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
 })
+
+test('the layout follows the window: no sideways scroll, filters become a drawer', async ({
+  page,
+}) => {
+  await offline(page)
+  await loadQueue(page)
+  const overflow = () =>
+    page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
+  const filters = page.getByRole('complementary', { name: 'Filters' })
+  await page.setViewportSize({ width: 1400, height: 800 })
+  await expect(filters).toBeVisible()
+  for (const width of [1024, 800]) {
+    await page.setViewportSize({ width, height: 800 })
+    expect(await overflow()).toBeLessThanOrEqual(0)
+  }
+  await expect(filters).toBeHidden()
+  await page.getByRole('button', { name: 'Filters', exact: true }).click()
+  await expect(filters).toBeVisible()
+  await filters.getByRole('button', { name: /Close filters/ }).click()
+  await expect(filters).toBeHidden()
+  // The map is told about its new size and keeps the station in the middle.
+  await expect(page.locator('.leaflet-container')).toBeVisible()
+  await page.setViewportSize({ width: 1400, height: 800 })
+  await expect(filters).toBeVisible()
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const box = document.querySelector('.leaflet-container')!.getBoundingClientRect()
+        const dot = [...document.querySelectorAll('.leaflet-interactive')].at(-1)!
+        const d = dot.getBoundingClientRect()
+        return Math.abs(d.x + d.width / 2 - (box.x + box.width / 2))
+      }),
+    )
+    .toBeLessThan(4)
+})

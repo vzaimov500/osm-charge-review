@@ -15,6 +15,8 @@
 
   const app = new AppState()
   let showStats = $state(false)
+  // Narrow windows: the filters slide over the list instead of taking a column.
+  let filtersOpen = $state(false)
 
   onMount(() => {
     void app.init()
@@ -51,8 +53,8 @@
     {#if ds}
       <!-- Filters · list · the selected station. j / k walk the list; the detail follows. -->
       <div class="work">
-        <FilterBar {app} />
-        <ReviewTable {app} />
+        <FilterBar {app} open={filtersOpen} onclose={() => (filtersOpen = false)} />
+        <ReviewTable {app} onfilters={() => (filtersOpen = !filtersOpen)} />
         {#if app.visible[app.focused]}
           <Detail row={app.visible[app.focused]!} {app} />
         {:else}
@@ -89,6 +91,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
   }
   footer {
     display: flex;
@@ -134,8 +137,29 @@
     flex: 1;
     min-height: 0;
     display: grid;
-    grid-template-columns: 13rem 22rem minmax(0, 1fr);
+    grid-template-columns: 13rem clamp(16rem, 24vw, 24rem) minmax(0, 1fr);
     overflow: hidden;
+    position: relative;
+  }
+  @media (max-width: 1100px) {
+    .work {
+      grid-template-columns: clamp(14rem, 34vw, 22rem) minmax(0, 1fr);
+    }
+  }
+  @media (max-width: 700px) {
+    .work {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(9rem, 35%) minmax(0, 1fr);
+    }
+  }
+  footer {
+    flex-wrap: wrap;
+  }
+  footer span {
+    flex: 1 1 22rem;
+  }
+  footer .keys {
+    text-align: right;
   }
   .empty {
     padding: 2rem;

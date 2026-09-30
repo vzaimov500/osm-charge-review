@@ -44,59 +44,62 @@
 
   <span class="spacer"></span>
 
-  <div class="env env-{env}" role="radiogroup" aria-label={t('env.title')}>
-    {#each ['sandbox', 'live'] as const as e (e)}
-      <label class:on={env === e}>
-        <input
-          type="radio"
-          name="environment"
-          checked={env === e}
-          onchange={() => void app.setEnvironment(e as ApiTarget)}
-        />
-        {t(e === 'sandbox' ? 'env.sandbox' : 'env.live')}
-      </label>
-    {/each}
+  <!-- Groups wrap as a whole on narrow windows, so the menu keeps its place at the right. -->
+  <div class="group">
+    <div class="env env-{env}" role="radiogroup" aria-label={t('env.title')}>
+      {#each ['sandbox', 'live'] as const as e (e)}
+        <label class:on={env === e}>
+          <input
+            type="radio"
+            name="environment"
+            checked={env === e}
+            onchange={() => void app.setEnvironment(e as ApiTarget)}
+          />
+          {t(e === 'sandbox' ? 'env.sandbox' : 'env.live')}
+        </label>
+      {/each}
+    </div>
+    <span class="rw">
+      {#if env === 'sandbox'}
+        {t('env.rwSandbox')}
+      {:else if app.liveUnlocked}
+        <strong class="live">{t('env.rwLiveUnlocked')}</strong>
+      {:else}
+        {t('env.rwLiveLocked')}
+        <button type="button" onclick={() => (app.showLiveGate = true)}>{t('env.unlock')}</button>
+      {/if}
+    </span>
   </div>
-  <span class="rw">
-    {#if env === 'sandbox'}
-      {t('env.rwSandbox')}
-    {:else if app.liveUnlocked}
-      <strong class="live">{t('env.rwLiveUnlocked')}</strong>
+
+  <div class="group right">
+    {#if app.account}
+      <span
+        class="account"
+        title={t('env.signedInAs', { account: app.account, server: host(TARGETS[env].authUrl) })}
+        >{app.account}</span
+      >
+      <button type="button" onclick={() => app.signOutClick()}>{t('upload.signOut')}</button>
     {:else}
-      {t('env.rwLiveLocked')}
-      <button type="button" onclick={() => (app.showLiveGate = true)}>{t('env.unlock')}</button>
+      <button
+        type="button"
+        disabled={!clientId}
+        title={clientId
+          ? t('env.signIn', { server: host(TARGETS[env].authUrl) })
+          : t('env.noClientId')}
+        onclick={() => app.signInClick()}>{t('env.signInShort')}</button
+      >
     {/if}
-  </span>
-
-  <span class="spacer"></span>
-
-  {#if app.account}
-    <span
-      class="account"
-      title={t('env.signedInAs', { account: app.account, server: host(TARGETS[env].authUrl) })}
-      >{app.account}</span
-    >
-    <button type="button" onclick={() => app.signOutClick()}>{t('upload.signOut')}</button>
-  {:else}
-    <button
-      type="button"
-      disabled={!clientId}
-      title={clientId
-        ? t('env.signIn', { server: host(TARGETS[env].authUrl) })
-        : t('env.noClientId')}
-      onclick={() => app.signInClick()}>{t('env.signInShort')}</button
-    >
-  {/if}
-  {#if app.dataset}
-    <button
-      type="button"
-      class="primary"
-      aria-expanded={app.showUpload}
-      onclick={() => (app.showUpload = !app.showUpload)}
-      >{t('batch.upload', { n: app.readyCount })}</button
-    >
-  {/if}
-  <Menu {app} {onstats} />
+    {#if app.dataset}
+      <button
+        type="button"
+        class="primary"
+        aria-expanded={app.showUpload}
+        onclick={() => (app.showUpload = !app.showUpload)}
+        >{t('batch.upload', { n: app.readyCount })}</button
+      >
+    {/if}
+    <Menu {app} {onstats} />
+  </div>
 </header>
 
 <style>
@@ -111,8 +114,9 @@
   }
   .top {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.4rem 0.6rem;
     padding: 0.45rem 0.9rem;
     border-bottom: 1px solid var(--border);
     font-size: 0.85rem;
@@ -130,6 +134,14 @@
   }
   .spacer {
     flex: 1;
+  }
+  .group {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .right {
+    margin-left: auto;
   }
   .env {
     flex-shrink: 0;

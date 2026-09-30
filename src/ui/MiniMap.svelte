@@ -41,6 +41,7 @@
   let paused = $state(false)
   let timer: ReturnType<typeof setTimeout> | undefined
   let observer: IntersectionObserver | undefined
+  let resized: ResizeObserver | undefined
 
   const escapeHtml = (s: string) =>
     s.replace(
@@ -72,6 +73,9 @@
     overlays = L.layerGroup().addTo(map)
     leaflet = L
     draw()
+    // Leaflet measures its box once; tell it when the window or the layout changes the size.
+    resized = new ResizeObserver(() => map?.invalidateSize({ debounceMoveend: true }))
+    resized.observe(el)
   }
 
   let overlays: import('leaflet').LayerGroup | undefined
@@ -134,6 +138,7 @@
 
   onDestroy(() => {
     clearTimeout(timer)
+    resized?.disconnect()
     if (map) {
       map.remove()
       live--

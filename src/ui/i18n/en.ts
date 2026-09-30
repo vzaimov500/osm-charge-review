@@ -55,6 +55,14 @@ export const en = {
   'detail.changes': 'What would change',
   'detail.changesHint': 'only ticked rows are written; nothing is ever deleted',
   'detail.none': 'No station matches the filters.',
+  'detail.step.choose':
+    'Choose what to do with this station (keys 1–4). Only Reject asks for more: a reason.',
+  'detail.step.chooseAuto':
+    'Choose what to do with this station (keys 1–4); the next undecided one then opens by itself. Only Reject asks for more: a reason.',
+  'detail.step.reason': 'Pick a reason to finish the reject.',
+  'detail.step.stay':
+    'Saved. It stays open because it is marked ! (needs a look): check the tags below, then press E for the next undecided.',
+  'detail.step.done': 'Saved: {action}. You can change it at any time; E opens the next undecided.',
   'class.linked': 'Linked: an OSM object already carries this record’s ref',
   'class.probable': 'Probable: a station within 50 m with the same brand, network or operator',
   'class.possible': 'Possible: something nearby, but less certain — check it',
@@ -69,7 +77,9 @@ export const en = {
   'filters.change': 'Change',
   'filters.distance': 'Distance',
   'filters.warnings': 'Warnings only',
-  'filters.search': 'Search label, address, id  (/)',
+  'filters.search': 'Search label, address, id  (F)',
+  'filters.show': 'Filters',
+  'filters.hide': 'Close filters',
   'filters.sort': 'Sort',
   'filters.reset': 'Reset',
   'filters.showing': '{shown} of {total}',
@@ -80,7 +90,7 @@ export const en = {
   'row.suggested': 'suggested',
   'row.target': 'Update which object?',
   'row.reason': 'Reason',
-  'row.note': 'Note',
+  'row.note': 'Note (optional)',
   'row.move': 'Move to the provider position ({d} m away)',
   'row.moveHint': 'The OSM position is usually better — move only if you know it is wrong.',
   'problem.update_without_target': 'Pick the object to update.',
@@ -214,7 +224,7 @@ export const en = {
   'stats.title': 'Statistics',
   'stats.show': 'Stats',
   'keys.help':
-    'Keys: j k (↓ ↑) next / previous · n p next / previous undecided · u a r s decide · / search',
+    'Keys: 1 Update · 2 Add · 3 Reject · 4 Skip · W / S previous / next · Q / E previous / next undecided · F search',
 } as const
 
 export type MessageKey = keyof typeof en

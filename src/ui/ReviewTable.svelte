@@ -7,7 +7,7 @@
   import { t } from './i18n'
   import type { AppState } from './state.svelte'
 
-  let { app }: { app: AppState } = $props()
+  let { app, onfilters }: { app: AppState; onfilters?: () => void } = $props()
 
   const ROW_HEIGHT = 30
   let scroller: HTMLDivElement | undefined = $state()
@@ -112,6 +112,9 @@
 
 <section class="list" aria-label={t('list.title')}>
   <div class="tools">
+    <button type="button" class="filters-toggle" onclick={() => onfilters?.()}
+      >{t('filters.show')}</button
+    >
     <input
       id="search"
       type="search"
@@ -190,6 +193,14 @@
     border-bottom: 1px solid var(--border);
     align-items: center;
   }
+  .filters-toggle {
+    display: none;
+  }
+  @media (max-width: 1100px) {
+    .filters-toggle {
+      display: inline-block;
+    }
+  }
   #search {
     flex: 1;
     min-width: 0;
@@ -252,6 +263,11 @@
     line-height: 1.45;
     opacity: 0.85;
     background: var(--bar-bg);
+  }
+  @media (max-width: 700px) {
+    .legend {
+      display: none;
+    }
   }
   /* Letters: '-' is quiet, the rest coloured by meaning (lightness differs, not only hue). */
   .d--,

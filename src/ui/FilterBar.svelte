@@ -4,7 +4,11 @@
   import { t } from './i18n'
   import type { AppState } from './state.svelte'
 
-  let { app }: { app: AppState } = $props()
+  let {
+    app,
+    open = false,
+    onclose,
+  }: { app: AppState; open?: boolean; onclose?: () => void } = $props()
   const f = $derived(app.filters)
 
   function toggle<T>(list: T[], v: T): T[] {
@@ -18,7 +22,8 @@
 </script>
 
 <!-- Filters in one column: what is shown in the list. The URL keeps them, so a view can be bookmarked. -->
-<aside class="filters" aria-label={t('filters.title')}>
+<aside class="filters" class:open aria-label={t('filters.title')}>
+  <button type="button" class="close" onclick={() => onclose?.()}>{t('filters.hide')} ×</button>
   <fieldset>
     <legend>{t('filters.class')}</legend>
     {#each MATCH_CLASSES as c (c)}
@@ -103,6 +108,29 @@
     font-size: 0.82rem;
     overflow-y: auto;
     min-height: 0;
+  }
+  .close {
+    display: none;
+  }
+  /* Narrow windows: a drawer over the list, opened from the list's Filters button. */
+  @media (max-width: 1100px) {
+    .filters {
+      display: none;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 15rem;
+      z-index: 1000;
+      box-shadow: 4px 0 18px rgb(0 0 0 / 0.18);
+    }
+    .filters.open {
+      display: flex;
+    }
+    .close {
+      display: block;
+      align-self: flex-end;
+    }
   }
   fieldset {
     border: none;

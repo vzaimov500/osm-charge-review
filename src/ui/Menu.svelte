@@ -104,6 +104,7 @@
     top: calc(100% + 6px);
     z-index: 1500;
     width: 26rem;
+    max-width: calc(100vw - 2rem);
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;

@@ -3,6 +3,7 @@
     changeableKeys,
     defaultSelection,
     REJECT_REASONS,
+    statusCode,
     type RejectReason,
     type RowModel,
     type TargetView,
@@ -70,6 +71,14 @@
       app.rejectRequest = null
       queueMicrotask(() => reasonSelect?.focus())
     }
+  })
+
+  // One line under the buttons says what the station is waiting for.
+  const step = $derived.by(() => {
+    if (rejectOpen && action !== 'reject') return t('detail.step.reason')
+    if (!action) return t(app.autoAdvance ? 'detail.step.chooseAuto' : 'detail.step.choose')
+    if (statusCode(row).attention !== '-') return t('detail.step.stay')
+    return t('detail.step.done', { action: t(`action.${action}`) })
   })
 
   async function run(p: Promise<string[]>) {
@@ -241,6 +250,7 @@
         </label>
       {/each}
     </div>
+    <p class="step" data-testid="step">{step}</p>
     <div class="extra">
       {#if rejectOpen || action === 'reject'}
         <label>
@@ -299,6 +309,8 @@
     flex-direction: column;
     height: 100%;
     min-width: 0;
+    min-height: 0;
+    container-type: inline-size;
   }
   .scroll {
     flex: 1;
@@ -473,6 +485,11 @@
     padding: 0 0.3rem;
     opacity: 0.7;
   }
+  .step {
+    margin: 0;
+    font-size: 0.8rem;
+    opacity: 0.85;
+  }
   .extra {
     display: flex;
     flex-wrap: wrap;
@@ -484,6 +501,14 @@
     display: flex;
     gap: 0.35rem;
     align-items: center;
+  }
+  @container (max-width: 36rem) {
+    .grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
   .link {
     border: 0;
