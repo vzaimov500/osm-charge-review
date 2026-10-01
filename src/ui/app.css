@@ -12,6 +12,7 @@
   --change-bg: #fef9c3;
   --conflict-bg: #fee2e2;
   --decided-bg: #f0f9ff;
+  --sel-bg: #fde68a;
   --warn-fg: #b45309;
   --err-fg: #b91c1c;
   --ok-fg: #15803d;
@@ -34,6 +35,7 @@
     --change-bg: #713f12;
     --conflict-bg: #7f1d1d;
     --decided-bg: #0c1a2e;
+    --sel-bg: #574500;
     --warn-fg: #fbbf24;
     --err-fg: #fca5a5;
     --ok-fg: #86efac;

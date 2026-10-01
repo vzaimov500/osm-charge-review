@@ -85,11 +85,11 @@
         break
       case 'Digit1':
       case 'Numpad1':
-        if (row) void act.andAdvance(app, row, act.update(app, row))
+        if (row && row.targets.length > 0) void act.update(app, row)
         break
       case 'Digit2':
       case 'Numpad2':
-        if (row) void act.andAdvance(app, row, act.add(app, row))
+        if (row) void act.add(app, row)
         break
       case 'Digit3':
       case 'Numpad3':
@@ -97,7 +97,7 @@
         break
       case 'Digit4':
       case 'Numpad4':
-        if (row) void act.andAdvance(app, row, act.skip(app, row))
+        if (row) void act.skip(app, row)
         break
       default:
         return
@@ -236,10 +236,17 @@
     border-bottom: 1px solid var(--muted-bg);
     cursor: pointer;
   }
+  /* The open station: a solid band with a thick edge, unmistakable at a glance. */
   .li.sel {
-    background: var(--decided-bg);
-    box-shadow: inset 3px 0 0 var(--primary-bg);
-    font-weight: 600;
+    background: var(--sel-bg);
+    box-shadow:
+      inset 6px 0 0 var(--primary-bg),
+      inset 0 0 0 2px var(--primary-bg);
+    font-weight: 700;
+  }
+  .li.sel .name::before {
+    content: '▶ ';
+    color: var(--primary-bg);
   }
   .code {
     font-family: ui-monospace, monospace;

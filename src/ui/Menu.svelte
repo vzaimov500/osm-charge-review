@@ -1,14 +1,10 @@
 <script lang="ts">
-  import { redirectUri } from '../osm/auth'
-  import { TARGETS } from '../osm/transport/api'
   import { OVERPASS_ENDPOINTS } from '../osm/transport/overpass'
   import { t } from './i18n'
   import type { AppState } from './state.svelte'
 
   let { app, onstats }: { app: AppState; onstats: () => void } = $props()
   let importInput: HTMLInputElement
-  const env = $derived(app.target)
-  const clientId = $derived(app.clientIds[env])
   const host = (url: string) => new URL(url).host
 </script>
 
@@ -42,42 +38,11 @@
       {/if}
     </section>
     <section>
-      <h2>{t('menu.review')}</h2>
-      <label class="check"
-        ><input
-          type="checkbox"
-          checked={app.autoAdvance}
-          onchange={(e) => void app.setAutoAdvance(e.currentTarget.checked)}
-        />
-        {t('menu.autoAdvance')}</label
-      >
-    </section>
-    <section>
       <h2>{t('env.endpoint')}</h2>
       <p>{t('menu.overpassHint')}</p>
       <select bind:value={app.endpoint} aria-label={t('env.endpoint')}>
         {#each OVERPASS_ENDPOINTS as e (e)}<option value={e}>{host(e)}</option>{/each}
       </select>
-    </section>
-    <section>
-      <h2>{t('env.advanced')}</h2>
-      {#if !clientId}
-        <p>
-          {t('upload.register', {
-            url: `${TARGETS[env].authUrl}/oauth2/applications/new`,
-            redirect: redirectUri(),
-          })}
-        </p>
-      {/if}
-      <label>
-        {t('env.clientId', { server: host(TARGETS[env].authUrl) })}
-        <input
-          type="text"
-          value={clientId}
-          size="46"
-          onchange={(e) => void app.setClientId(env, e.currentTarget.value)}
-        />
-      </label>
     </section>
   </div>
 </details>
@@ -133,15 +98,5 @@
   p {
     margin: 0;
     width: 100%;
-  }
-  label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    width: 100%;
-  }
-  label.check {
-    flex-direction: row;
-    align-items: center;
   }
 </style>

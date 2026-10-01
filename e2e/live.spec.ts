@@ -105,6 +105,7 @@ test('with everything recorded: typed confirmation, small first batch, dry run b
   for (let i = 0; i < 3; i++) {
     await page.locator('body').press('2')
     await expect(rows.nth(i)).toHaveAttribute('data-decision', 'add')
+    await page.locator('body').press('s')
   }
 
   const gate = await openGate(page)

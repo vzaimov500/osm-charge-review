@@ -54,7 +54,7 @@ async function decideAndPlan(page: Page) {
   const rows = page.locator('.li')
   await page.locator('body').press('2')
   await expect(rows.nth(0)).toHaveAttribute('data-decision', 'add')
-  await expect(rows.nth(1)).toHaveClass(/sel/) // moved on by itself
+  await page.locator('body').press('s')
   await page.locator('body').press('2')
   await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
   await page.getByRole('button', { name: /^Upload · \d+ ready$/ }).click()

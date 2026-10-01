@@ -67,8 +67,3 @@ export function nextUndecided(
   for (let i = from + dir; i >= 0 && i < rows.length; i += dir) if (!rows[i]!.decided) return i
   return undefined
 }
-
-/** Auto-advance leaves rows that still need a look (a conflict to tick, a changed record). */
-export function mayAdvanceFrom(row: RowModel): boolean {
-  return statusCode(row).attention === '-'
-}

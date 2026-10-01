@@ -56,13 +56,10 @@ export const en = {
   'detail.changesHint': 'only ticked rows are written; nothing is ever deleted',
   'detail.none': 'No station matches the filters.',
   'detail.step.choose':
-    'Choose what to do with this station (keys 1–4). Only Reject asks for more: a reason.',
-  'detail.step.chooseAuto':
-    'Choose what to do with this station (keys 1–4); the next undecided one then opens by itself. Only Reject asks for more: a reason.',
+    'Choose what to do with this station (keys 1–4). Only Reject asks for more: a reason. S or E moves on.',
   'detail.step.reason': 'Pick a reason to finish the reject.',
-  'detail.step.stay':
-    'Saved. It stays open because it is marked ! (needs a look): check the tags below, then press E for the next undecided.',
-  'detail.step.done': 'Saved: {action}. You can change it at any time; E opens the next undecided.',
+  'detail.step.done': 'Saved: {action}. You can change it at any time. S next · E next undecided.',
+  'detail.noUpdate': 'Nothing to update: no existing OSM station nearby.',
   'class.linked': 'Linked: an OSM object already carries this record’s ref',
   'class.probable': 'Probable: a station within 50 m with the same brand, network or operator',
   'class.possible': 'Possible: something nearby, but less certain — check it',
@@ -122,8 +119,6 @@ export const en = {
   'action.reject': 'Reject',
   'action.skip': 'Skip',
   'upload.title': 'Upload',
-  'upload.register':
-    'Register an OAuth2 application at {url} with redirect URI {redirect} and scopes "Read user preferences" and "Modify the map". No secret is needed (PKCE).',
   'upload.signOut': 'Sign out',
   'upload.needSignIn': 'Sign in (at the top) to upload.',
   'env.title': 'Environment',
@@ -132,8 +127,6 @@ export const en = {
   'env.rwLiveUnlocked': 'reads and writes LIVE OpenStreetMap',
   'menu.title': 'Settings and more',
   'menu.data': 'Data',
-  'menu.review': 'Reviewing',
-  'menu.autoAdvance': 'After a decision, jump to the next undecided station',
   'menu.overpassHint': 'Used for live OSM data and for regions.',
   'status.candidates': 'candidates · file {at}',
   'status.regions': 'Regions: {n}',
@@ -151,9 +144,7 @@ export const en = {
   'env.signedInAs': 'Signed in to {server} as {account}',
   'env.signIn': 'Sign in to {server}',
   'env.signInShort': 'Sign in',
-  'env.advanced': 'Own OAuth app (advanced)',
   'env.noClientId': 'Needs an OAuth app for this server — see the ⋯ menu',
-  'env.clientId': 'OAuth2 client id for {server}',
   'upload.plan': '1 · Plan batches from ready decisions',
   'upload.steps':
     'Steps: 1 plan batches from your ready decisions → 2 dry run (download the .osc and check it in JOSM; required for live) → 3 upload → 4 the batch is read back and verified; revert if needed.',

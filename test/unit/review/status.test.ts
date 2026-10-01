@@ -4,7 +4,6 @@ import {
   ACTIONS,
   batchStateOf,
   MATCH_CHAR,
-  mayAdvanceFrom,
   nextUndecided,
   statusCode,
   type RowModel,
@@ -70,7 +69,7 @@ describe('batchStateOf', () => {
   ])('%s → %s', (s, want) => expect(batchStateOf(s)).toBe(want))
 })
 
-describe('nextUndecided / mayAdvanceFrom (auto-advance and n / p)', () => {
+describe('nextUndecided (Q / E)', () => {
   const r = (decided: boolean) => row({ decided })
   const list = [r(true), r(false), r(true), r(false)]
 
@@ -85,9 +84,9 @@ describe('nextUndecided / mayAdvanceFrom (auto-advance and n / p)', () => {
     expect(nextUndecided(list, 1, -1)).toBeUndefined()
   })
 
-  test('only rows without anything to look at advance', () => {
-    expect(mayAdvanceFrom(row({ warnings: ['recent_human_edit'] }))).toBe(true)
-    expect(mayAdvanceFrom(row({ warnings: ['conflicts'] }))).toBe(false)
-    expect(mayAdvanceFrom(row({ warnings: ['superseded'] }))).toBe(false)
+  test('informational warnings do not ask for a look', () => {
+    expect(statusCode(row({ warnings: ['recent_human_edit'] })).attention).toBe('-')
+    expect(statusCode(row({ warnings: ['conflicts'] })).attention).toBe('!')
+    expect(statusCode(row({ warnings: ['superseded'] })).attention).toBe('*')
   })
 })
