@@ -52,6 +52,8 @@ export const en = {
   'list.title': 'Stations',
   'list.station': 'Station',
   'list.descending': 'Reverse order',
+  'list.legend': 'What the letters mean',
+  'list.legendNone': 'in any column: nothing yet',
   'detail.changes': 'What would change',
   'detail.changesHint': 'only ticked rows are written; nothing is ever deleted',
   'detail.none': 'No station matches the filters.',

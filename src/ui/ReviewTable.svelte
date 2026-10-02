@@ -106,6 +106,66 @@
   }
 
   const LEGEND = 'M match · D decision · B batch/upload · ! needs a look'
+
+  // Open or folded legend: a per-browser convenience, so storage failures just mean "open".
+  const LEGEND_KEY = 'osm-charge-review:legend'
+  let legendOpen = $state(readLegendOpen())
+  function readLegendOpen(): boolean {
+    try {
+      return localStorage.getItem(LEGEND_KEY) !== 'closed'
+    } catch {
+      return true
+    }
+  }
+  $effect(() => {
+    const v = legendOpen ? 'open' : 'closed'
+    try {
+      localStorage.setItem(LEGEND_KEY, v)
+    } catch {
+      /* private mode: not remembered */
+    }
+  })
+
+  const LEGEND_ROWS = [
+    {
+      col: 'M',
+      name: 'match',
+      values: [
+        { char: 'L', cls: 'm-L', text: 'linked' },
+        { char: 'P', cls: 'm-P', text: 'probable' },
+        { char: '?', cls: 'm-q', text: 'possible' },
+        { char: 'N', cls: 'm-N', text: 'new' },
+        { char: 'X', cls: 'm-X', text: 'lifecycle' },
+      ],
+    },
+    {
+      col: 'D',
+      name: 'decision',
+      values: [
+        { char: 'U', cls: 'd-U', text: 'update' },
+        { char: 'A', cls: 'd-A', text: 'add' },
+        { char: 'R', cls: 'd-R', text: 'reject' },
+        { char: 'S', cls: 'd-S', text: 'skip' },
+      ],
+    },
+    {
+      col: 'B',
+      name: 'upload',
+      values: [
+        { char: 'b', cls: 'b-b', text: 'in a batch' },
+        { char: 'u', cls: 'b-u', text: 'uploaded' },
+        { char: 'v', cls: 'b-v', text: 'verified' },
+      ],
+    },
+    {
+      col: '!',
+      name: 'attention',
+      values: [
+        { char: '!', cls: 'a-bang', text: 'needs a look' },
+        { char: '*', cls: 'a-star', text: 'changed by provider' },
+      ],
+    },
+  ]
 </script>
 
 <svelte:window {onkeydown} />
@@ -167,15 +227,21 @@
       {/each}
     </div>
   </div>
-  <div class="legend">
-    <div><b>M</b> L linked · P probable · ? possible · N new · X lifecycle</div>
-    <div>
-      <b>D</b> A add · U update · R reject · S skip &nbsp; <b>B</b> b batch · u uploaded · v verified
-    </div>
-    <div>
-      <b>!</b> needs a decision (conflict, note, lifecycle…) · * changed by the provider · - nothing yet
-    </div>
-  </div>
+  <!-- One row per status letter: its name, then each value as a pill in the list's colours. -->
+  <details class="legend" bind:open={legendOpen}>
+    <summary>{t('list.legend')}</summary>
+    <dl>
+      {#each LEGEND_ROWS as r (r.col)}
+        <dt><b>{r.col}</b> {r.name}</dt>
+        <dd>
+          {#each r.values as v (v.char)}<span class="pill"
+              ><span class="code {v.cls}">{v.char}</span> {v.text}</span
+            >{/each}
+        </dd>
+      {/each}
+    </dl>
+    <p class="none-note"><span class="code d--">-</span> {t('list.legendNone')}</p>
+  </details>
 </section>
 
 <style>
@@ -264,12 +330,59 @@
     text-align: right;
   }
   .legend {
-    padding: 0.4rem 0.7rem;
+    padding: 0.35rem 0.7rem 0.45rem;
     border-top: 1px solid var(--border);
-    font-size: 0.7rem;
-    line-height: 1.45;
-    opacity: 0.85;
+    font-size: 0.72rem;
     background: var(--bar-bg);
+  }
+  .legend summary {
+    cursor: pointer;
+    opacity: 0.75;
+    user-select: none;
+  }
+  .legend dl {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.3rem 0.6rem;
+    margin: 0.35rem 0 0;
+    align-items: baseline;
+  }
+  .legend dt {
+    white-space: nowrap;
+    opacity: 0.8;
+  }
+  .legend dt b {
+    font-family: ui-monospace, monospace;
+    font-size: 0.8rem;
+    display: inline-block;
+    width: 0.9rem;
+  }
+  .legend dd {
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+  .pill {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    padding: 0 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg);
+    white-space: nowrap;
+  }
+  .pill .code {
+    letter-spacing: 0;
+  }
+  .none-note {
+    margin: 0.3rem 0 0;
+    opacity: 0.75;
+  }
+  .none-note .code {
+    letter-spacing: 0;
+    opacity: 0.6;
   }
   @media (max-width: 700px) {
     .legend {
