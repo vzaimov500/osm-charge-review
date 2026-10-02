@@ -38,6 +38,21 @@
       {/if}
     </section>
     <section>
+      <h2>{t('menu.imagery')}</h2>
+      <label class="field">
+        {t('menu.mapboxToken')}
+        <input
+          type="text"
+          value={app.mapboxToken}
+          placeholder="pk.…"
+          autocomplete="off"
+          spellcheck="false"
+          onchange={(e) => app.setMapboxToken(e.currentTarget.value)}
+        />
+      </label>
+      <p>{t('menu.mapboxHint')}</p>
+    </section>
+    <section>
       <h2>{t('env.endpoint')}</h2>
       <p>{t('menu.overpassHint')}</p>
       <select bind:value={app.endpoint} aria-label={t('env.endpoint')}>
@@ -97,6 +112,12 @@
   }
   p {
     margin: 0;
+    width: 100%;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
     width: 100%;
   }
 </style>

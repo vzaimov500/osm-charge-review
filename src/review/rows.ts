@@ -1,4 +1,5 @@
 import type { Candidate } from '../format'
+import { distanceM } from '../geo/distance'
 import {
   divergence,
   humanFlags,
@@ -33,6 +34,8 @@ export interface Decision {
   tags?: Record<string, string>
   /** Update: move the object to the candidate position (explicit, never default). */
   move?: boolean
+  /** Add: where the reviewer placed the station (e.g. on the chargers seen on imagery). Default: the candidate position. */
+  position?: { lat: number; lon: number }
   reasonCode?: RejectReason
   note?: string
   decidedAt: string
@@ -158,6 +161,12 @@ export function buildRow(
   return row
 }
 
+/** A new station may be placed this far from the provider position, no further: a correction, not a relocation. */
+export const MAX_ADD_SHIFT_M = 300
+/** The tag an Add gets when its position could not be checked. */
+export const POSITION_FIXME =
+  'position from operator data, not verified on imagery or on the ground'
+
 export const DECISION_PROBLEMS = [
   'update_without_target',
   'target_not_nearby',
@@ -166,6 +175,7 @@ export const DECISION_PROBLEMS = [
   'reject_without_reason',
   'add_without_tags',
   'add_when_linked',
+  'position_too_far',
 ] as const
 export type DecisionProblem = (typeof DECISION_PROBLEMS)[number]
 
@@ -186,6 +196,8 @@ export function validateDecision(row: RowModel, d: Decision): DecisionProblem[] 
   if (d.action === 'reject' && d.reasonCode === undefined) out.push('reject_without_reason')
   if (d.action === 'add' && (d.tags === undefined || Object.keys(d.tags).length === 0))
     out.push('add_without_tags')
+  if (d.action === 'add' && d.position && distanceM(row.candidate, d.position) > MAX_ADD_SHIFT_M)
+    out.push('position_too_far')
   // Linked: an OSM object already carries this record's ref, so an Add can only duplicate it.
   if (d.action === 'add' && row.match.class === 'linked') out.push('add_when_linked')
   return out

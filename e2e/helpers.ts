@@ -10,7 +10,13 @@ export async function offline(
   opts: { overpassStatus?: number } = {},
 ): Promise<{ overpassCalls: () => number }> {
   let calls = 0
-  await page.route('https://tile.openstreetmap.org/**', (r) => r.fulfill({ status: 204, body: '' }))
+  for (const tiles of [
+    'https://tile.openstreetmap.org/**',
+    'https://bg-imagery.openstreetmap.org/**',
+    'https://server.arcgisonline.com/**',
+    'https://api.mapbox.com/**',
+  ])
+    await page.route(tiles, (r) => r.fulfill({ status: 204, body: '' }))
   await page.route(/\/api\/interpreter$/, (r) => {
     calls++
     return opts.overpassStatus

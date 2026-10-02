@@ -1,6 +1,8 @@
 import { expect, test } from 'vitest'
 import { validateDecision, type Decision, type RowModel } from '../../../src/review'
-import { pickTarget, shownTarget } from '../../../src/ui/actions'
+import { POSITION_FIXME } from '../../../src/review'
+import { add, addOptions, pickTarget, setAddOptions, shownTarget } from '../../../src/ui/actions'
+import { IMAGERY, OSM_TILES, resolveTiles } from '../../../src/ui/imagery'
 import { osmObjectUrl, osmUrl } from '../../../src/ui/format'
 import type { AppState } from '../../../src/ui/state.svelte'
 import { cand, obj, rows } from '../review/helpers'
@@ -10,6 +12,7 @@ function fakeApp() {
   const decisions: Record<string, Decision> = {}
   const app = {
     pickedTarget: null as AppState['pickedTarget'],
+    addDraft: null as AppState['addDraft'],
     async decide(
       row: RowModel,
       d: Omit<Decision, 'decidedAt' | 'contentHash' | 'superseded'> | null,
@@ -68,4 +71,50 @@ test('links open on the website of the selected environment', () => {
   expect(osmUrl(42.5, 23.25, sandbox)).toMatch(
     /^https:\/\/master\.apis\.dev\.openstreetmap\.org\/\?mlat=/,
   )
+})
+
+test('a position and a fixme set before Add are used by Add; afterwards they change the saved Add', async () => {
+  const c = cand()
+  const { app, decisions } = fakeApp()
+  const row = () => rows([c], [], decisions)[0]!
+  const spot = { lat: c.lat + 0.0002, lon: c.lon + 0.0002 }
+
+  expect(addOptions(app, row())).toEqual({ fixme: false })
+  await setAddOptions(app, row(), { position: spot })
+  await setAddOptions(app, row(), { fixme: true })
+  expect(decisions[c.sourceId]).toBeUndefined() // nothing is decided by dragging
+  expect(addOptions(app, row())).toEqual({ position: spot, fixme: true })
+
+  expect(await add(app, row())).toEqual([])
+  expect(decisions[c.sourceId]).toMatchObject({
+    action: 'add',
+    position: spot,
+    tags: { ...c.tags, fixme: POSITION_FIXME },
+  })
+
+  await setAddOptions(app, row(), { fixme: false })
+  expect(decisions[c.sourceId]!.tags).toEqual(c.tags)
+  expect(decisions[c.sourceId]!.position).toEqual(spot)
+  await setAddOptions(app, row(), { position: null })
+  expect(decisions[c.sourceId]!.position).toBeUndefined()
+  expect(addOptions(app, row())).toEqual({ fixme: false })
+})
+
+test('what was set for one station does not leak to another; too far is refused', async () => {
+  const [a, b] = [cand(), cand()]
+  const { app, decisions } = fakeApp()
+  const [ra, rb] = rows([a, b], [], decisions)
+  await setAddOptions(app, ra!, { fixme: true })
+  expect(addOptions(app, rb!)).toEqual({ fixme: false })
+  expect(
+    await add(app, rb!, { fixme: false, position: { lat: b.lat + 0.01, lon: b.lon } }),
+  ).toEqual(['position_too_far'])
+})
+
+test('imagery: a layer that needs a token is unavailable without one', () => {
+  const mapbox = IMAGERY.find((s) => s.needsToken)!
+  expect(resolveTiles(mapbox, '  ')).toBeUndefined()
+  expect(resolveTiles(mapbox, ' pk.a b ')!.url).toContain('access_token=pk.a%20b')
+  expect(resolveTiles(OSM_TILES, '')).toBe(OSM_TILES)
+  expect(IMAGERY.map((s) => s.id)).toEqual(['maf', 'esri', 'mapbox'])
 })

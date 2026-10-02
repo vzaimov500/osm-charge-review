@@ -73,6 +73,7 @@ import {
   type StorageStatus,
 } from '../store/storage'
 import { CREATED_BY, TOOL_URL } from '../version'
+import { IMAGERY, readPref, writePref } from './imagery'
 import { t } from './i18n'
 
 export type Notice = { kind: 'info' | 'error'; text: string; exportPrompt?: boolean }
@@ -143,6 +144,15 @@ export class AppState {
   rejectRequest = $state<string | null>(null)
   /** The object picked in "Update which object?", before (or instead of) a saved Update. */
   pickedTarget = $state<{ sourceId: string; key: string } | null>(null)
+  /** Imagery shown next to the map, and the reviewer's own Mapbox token (this browser only). */
+  imagery = $state(readPref('imagery') || IMAGERY[0]!.id)
+  mapboxToken = $state(readPref('mapboxToken'))
+  /** Where a new station was dragged, and whether to flag it, before Add is chosen. */
+  addDraft = $state<{
+    sourceId: string
+    position?: { lat: number; lon: number }
+    fixme: boolean
+  } | null>(null)
 
   rows: RowModel[] = $derived.by(() => {
     const objectsByKey = new Map(this.objects.map((o) => [osmKey(o), o]))
@@ -400,6 +410,16 @@ export class AppState {
         !addsDuplicate(r) &&
         (r.decision!.action === 'add' || r.decision!.action === 'update'),
     ).length
+  }
+
+  setImagery(id: string): void {
+    this.imagery = id
+    writePref('imagery', id)
+  }
+
+  setMapboxToken(token: string): void {
+    this.mapboxToken = token.trim()
+    writePref('mapboxToken', this.mapboxToken)
   }
 
   /** Website of the selected environment: object and map links open there. */

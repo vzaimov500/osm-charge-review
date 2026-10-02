@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { DEFAULT_MATCH_CONFIG } from '../../../src/match'
-import { buildRow, validateDecision } from '../../../src/review'
+import { buildRow, MAX_ADD_SHIFT_M, validateDecision } from '../../../src/review'
+import { offset } from '../match/helpers'
 import { cand, decision, NOW, obj, REF, rows } from './helpers'
 
 const LIVE = { amenity: 'charging_station' }
@@ -124,6 +125,18 @@ describe('validateDecision', () => {
     [{ action: 'skip' as const }, []],
   ])('%j → %j', (d, problems) => {
     expect(validateDecision(r!, decision(d))).toEqual(problems)
+  })
+
+  test('a new station may be placed near the provider position, not far from it', () => {
+    const near = offset(c.lon, c.lat, 120)
+    const far = offset(c.lon, c.lat, MAX_ADD_SHIFT_M + 50)
+    const [free] = rows([c], [])
+    expect(
+      validateDecision(free!, decision({ action: 'add', tags: c.tags, position: near })),
+    ).toEqual([])
+    expect(
+      validateDecision(free!, decision({ action: 'add', tags: c.tags, position: far })),
+    ).toEqual(['position_too_far'])
   })
 
   test('a linked station cannot be added again', () => {

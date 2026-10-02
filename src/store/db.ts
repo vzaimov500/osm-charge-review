@@ -55,6 +55,8 @@ export interface DecisionRecord {
   tags?: Record<string, string>
   /** Update: move the object to the candidate position (explicit, never default). */
   move?: boolean
+  /** Add: the position the reviewer chose instead of the candidate's. */
+  position?: { lat: number; lon: number }
   decidedAt: string
   /** contentHash of the candidate when decided; differs ⇒ superseded. */
   contentHash: string

@@ -330,6 +330,20 @@ describe('createBatches', () => {
     expect(batches[0]!.status).toBe('draft')
   })
 
+  test('a new station is created where the reviewer placed it', async () => {
+    const moved: BatchInput = {
+      ...addInput('m'),
+      decision: decision({
+        action: 'add',
+        tags: { amenity: 'charging_station', 'ref:example': 'm' },
+        position: { lat: 42.7004, lon: 23.3206 },
+      }),
+    }
+    const [batch] = await prepare([moved, addInput('n')])
+    const at = Object.fromEntries(batch!.items.map((i) => [i.sourceId, [i.lat, i.lon]]))
+    expect(at).toEqual({ m: [42.7004, 23.3206], n: [42.7, 23.32] })
+  })
+
   test('a batch for one target cannot run on another target’s client', async () => {
     const [batch] = await prepare([addInput('a')])
     await db.put('batch', { ...batch!, apiTarget: 'live' })

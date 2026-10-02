@@ -1,6 +1,7 @@
 import {
   changesFor,
   defaultSelection,
+  POSITION_FIXME,
   type Decision,
   type RejectReason,
   type RowModel,
@@ -57,11 +58,59 @@ export async function pickTarget(app: AppState, row: RowModel, tv: TargetView): 
   return problems
 }
 
-export function add(app: AppState, row: RowModel): Promise<string[]> {
-  return app.decide(
-    row,
-    withNote({ action: 'add', tags: { ...row.candidate.tags } }, row.decision?.note),
-  )
+/** What an Add would use beyond the candidate's own tags and position. */
+export interface AddOptions {
+  /** Where the reviewer dragged the station; undefined: the provider position. */
+  position?: { lat: number; lon: number }
+  /** Tag it as not verified. */
+  fixme: boolean
+}
+
+/** From the saved Add, else from what was set before choosing Add. */
+export function addOptions(app: AppState, row: RowModel): AddOptions {
+  const d = row.decision
+  if (d?.action === 'add') {
+    const o: AddOptions = { fixme: d.tags?.fixme === POSITION_FIXME }
+    if (d.position) o.position = d.position
+    return o
+  }
+  const draft = app.addDraft
+  if (draft && draft.sourceId === row.candidate.sourceId) {
+    const o: AddOptions = { fixme: draft.fixme }
+    if (draft.position) o.position = draft.position
+    return o
+  }
+  return { fixme: false }
+}
+
+export function add(
+  app: AppState,
+  row: RowModel,
+  opts: AddOptions = addOptions(app, row),
+): Promise<string[]> {
+  const tags = { ...row.candidate.tags }
+  if (opts.fixme) tags.fixme = POSITION_FIXME
+  const d: Draft = { action: 'add', tags }
+  if (opts.position) d.position = opts.position
+  return app.decide(row, withNote(d, row.decision?.note))
+}
+
+/**
+ * Change where a new station goes or whether it is flagged. A saved Add is
+ * re-saved; before Add is chosen the choice waits and Add picks it up.
+ */
+export function setAddOptions(
+  app: AppState,
+  row: RowModel,
+  change: { position?: { lat: number; lon: number } | null; fixme?: boolean },
+): Promise<string[]> {
+  const cur = addOptions(app, row)
+  const next: AddOptions = { fixme: change.fixme ?? cur.fixme }
+  const position = change.position === undefined ? cur.position : change.position
+  if (position) next.position = position
+  if (row.decision?.action === 'add') return add(app, row, next)
+  app.addDraft = { sourceId: row.candidate.sourceId, ...next }
+  return Promise.resolve([])
 }
 
 export function update(

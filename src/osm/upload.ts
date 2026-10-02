@@ -46,12 +46,11 @@ export async function createBatches(
       !i.decision.superseded &&
       !i.decision.uploadedBatchId,
   )
-  const placed = eligible.map((i) => ({
-    sourceId: i.candidate.sourceId,
-    lat: i.candidate.lat,
-    lon: i.candidate.lon,
-    input: i,
-  }))
+  // A new station goes where the reviewer placed it, if they moved it.
+  const placed = eligible.map((i) => {
+    const at = (i.decision.action === 'add' ? i.decision.position : undefined) ?? i.candidate
+    return { sourceId: i.candidate.sourceId, lat: at.lat, lon: at.lon, input: i }
+  })
   const groups = planBatches(placed, o)
   const now = o.now ?? (() => new Date())
   const out: BatchRecord[] = []
@@ -63,8 +62,8 @@ export async function createBatches(
         return {
           sourceId: c.sourceId,
           kind: 'create',
-          lat: c.lat,
-          lon: c.lon,
+          lat: (d.position ?? c).lat,
+          lon: (d.position ?? c).lon,
           tags: { ...(d.tags ?? c.tags) },
           placeholderId: -(i + 1),
         }

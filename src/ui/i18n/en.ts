@@ -61,6 +61,21 @@ export const en = {
     'Choose what to do with this station (keys 1–4). Only Reject asks for more: a reason. S or E moves on.',
   'detail.step.reason': 'Pick a reason to finish the reject.',
   'detail.step.done': 'Saved: {action}. You can change it at any time. S next · E next undecided.',
+  'imagery.pick': 'Imagery',
+  'imagery.needsToken':
+    'Mapbox Satellite needs your own Mapbox access token. Enter it in the ⋯ menu under Imagery, or pick another layer above.',
+  'add.dragHint': 'New station: drag the red marker onto the chargers if you can see them.',
+  'add.moved': 'Placed {d} from the provider position.',
+  'add.reset': 'Put it back',
+  'add.fixme': 'Position not verified (adds fixme)',
+  'add.fixmeHint':
+    'Tick when the imagery does not show the station, e.g. it is newer than the photos. Adds a fixme tag asking for a check on the ground.',
+  'menu.imagery': 'Imagery',
+  'menu.mapboxToken': 'Mapbox access token',
+  'menu.mapboxHint':
+    'Only for the Mapbox Satellite layer. Use your own free public token (pk.…) from account.mapbox.com. It stays in this browser and is not exported.',
+  'problem.position_too_far':
+    'That is more than 300 m from the provider position. Reject the record as bad coordinates instead, or put the marker back.',
   'detail.noUpdate': 'Nothing to update: no existing OSM station nearby.',
   'detail.noAdd': 'Already in OSM: an object carries this ref, so adding would duplicate it.',
   'class.linked': 'Linked: an OSM object already carries this record’s ref',

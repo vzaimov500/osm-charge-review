@@ -18,7 +18,9 @@ test.describe('review queue', () => {
 
     // The detail map shows the nearby OSM objects once the data has arrived.
     await page.locator('.li[data-code^="P"], .li[data-code^="L"]').first().click()
-    await expect(page.locator('section.detail .minimap path[stroke="#2563eb"]')).toHaveCount(1)
+    await expect(
+      page.locator('section.detail [data-testid="map-osm"] .minimap path[stroke="#2563eb"]'),
+    ).toHaveCount(1)
 
     // Reload within the cache window: no new request.
     await page.reload()
@@ -228,17 +230,59 @@ test('the layout follows the window: no sideways scroll, filters become a drawer
   await filters.getByRole('button', { name: /Close filters/ }).click()
   await expect(filters).toBeHidden()
   // The map is told about its new size and keeps the station in the middle.
-  await expect(page.locator('.leaflet-container')).toBeVisible()
+  await expect(page.getByTestId('map-osm').locator('.leaflet-container')).toBeVisible()
   await page.setViewportSize({ width: 1400, height: 800 })
   await expect(filters).toBeVisible()
   await expect
     .poll(() =>
       page.evaluate(() => {
-        const box = document.querySelector('.leaflet-container')!.getBoundingClientRect()
-        const dot = [...document.querySelectorAll('.leaflet-interactive')].at(-1)!
-        const d = dot.getBoundingClientRect()
+        // Both maps: the station marker sits in the middle of each.
+        const map = document.querySelector('[data-testid="map-imagery"] .leaflet-container')!
+        const box = map.getBoundingClientRect()
+        const d = map.querySelector('.cand-pin')!.getBoundingClientRect()
         return Math.abs(d.x + d.width / 2 - (box.x + box.width / 2))
       }),
     )
     .toBeLessThan(4)
+})
+
+test('a new station can be placed on the imagery and flagged; both survive a reload', async ({
+  page,
+}) => {
+  await offline(page)
+  await loadQueue(page)
+  const imagery = page.getByTestId('map-imagery')
+  await expect(page.getByTestId('map-osm').locator('.leaflet-container')).toBeVisible()
+  await expect(imagery.locator('.leaflet-container')).toBeVisible()
+
+  // Mapbox needs the reviewer's own token; the other layers work straight away.
+  await imagery.getByRole('combobox', { name: 'Imagery' }).selectOption('mapbox')
+  await expect(imagery.getByText(/needs your own Mapbox access token/)).toBeVisible()
+  await imagery.getByRole('combobox', { name: 'Imagery' }).selectOption('esri')
+
+  const pin = imagery.locator('.cand-pin')
+  await expect(pin).toBeVisible()
+  const box = (await pin.boundingBox())!
+  await page.mouse.move(box.x + 11, box.y + 11)
+  await page.mouse.down()
+  await page.mouse.move(box.x + 70, box.y + 45, { steps: 6 })
+  await page.mouse.up()
+  await expect(page.getByTestId('moved')).toContainText(/Placed \d+(\.\d)? m from the provider/)
+  await page.getByLabel(/Position not verified/).check()
+  await expect(page.locator('section.detail')).toContainText('not verified on imagery')
+
+  // Dragging decides nothing; Add takes the position and the flag with it.
+  const row = page.locator('.li').first()
+  await expect(row).toHaveAttribute('data-decision', '')
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+  await page.locator('body').press('2')
+  await expect(row).toHaveAttribute('data-decision', 'add')
+
+  await page.reload()
+  await expect(page.getByText('600 of 600')).toBeVisible()
+  await expect(page.getByTestId('moved')).toBeVisible()
+  await expect(page.getByLabel(/Position not verified/)).toBeChecked()
+  await expect(imagery.getByRole('combobox', { name: 'Imagery' })).toHaveValue('esri')
+  await page.getByRole('button', { name: 'Put it back' }).click()
+  await expect(page.getByTestId('moved')).toHaveCount(0)
 })

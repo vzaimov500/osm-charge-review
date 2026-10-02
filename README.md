@@ -50,6 +50,10 @@ approved — with their own OpenStreetMap account.
    Keyboard (by key position, so any layout works): `1` Update, `2` Add,
    `3` Reject, `4` Skip, `W`/`S` previous/next, `Q`/`E` previous/next
    undecided, `F` search.
+   The map sits next to aerial imagery (Bulgaria MAF Orthophoto, Esri World
+   Imagery, or Mapbox Satellite with your own access token). A new station can
+   be dragged onto the chargers, at most 300 m, or flagged with a `fixme` when
+   the imagery does not show it. Existing stations are never moved this way.
 4. Filters (class, decision, action, update-needed vs already-correct,
    warnings, distance, region, text) are kept in the URL, so a view can be
    bookmarked or shared.

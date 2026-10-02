@@ -3,6 +3,8 @@
   const MAX_LIVE_MAPS = 12
   /** A row must stay visible this long before its map loads, so fast scrolling fetches no tiles. */
   const SETTLE_MS = 400
+  /** Deeper than most imagery goes: the last tiles are enlarged, which is enough to place a point. */
+  const MAX_ZOOM = 21
   let live = 0
 </script>
 
@@ -10,6 +12,13 @@
   import { onDestroy } from 'svelte'
   import type { Map as LeafletMap } from 'leaflet'
   import { osmObjectUrl } from './format'
+  import { OSM_TILES, type TileSource } from './imagery'
+
+  interface View {
+    lat: number
+    lon: number
+    zoom: number
+  }
 
   interface Nearby {
     lat: number
@@ -28,6 +37,11 @@
     nearby,
     big = false,
     web,
+    tiles = OSM_TILES,
+    view,
+    onview,
+    place,
+    ondragto,
   }: {
     lat: number
     lon: number
@@ -37,6 +51,15 @@
     big?: boolean
     /** Website the object links open on (sandbox or live). */
     web?: string
+    /** The background layer. */
+    tiles?: TileSource
+    /** Shared with a second map so both show the same spot. */
+    view?: View
+    onview?: (v: View) => void
+    /** Where the station would be created, when not at (lat, lon). */
+    place?: { lat: number; lon: number } | undefined
+    /** Set: the station marker can be dragged; called with where it was dropped. */
+    ondragto?: ((lat: number, lon: number) => void) | undefined
   } = $props()
 
   let el: HTMLDivElement
@@ -68,14 +91,18 @@
       zoomControl: big,
       attributionControl: true,
       scrollWheelZoom: big,
-    }).setView([lat, lon], 18)
-    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map)
+      maxZoom: MAX_ZOOM,
+    }).setView(view ? [view.lat, view.lon] : [lat, lon], view?.zoom ?? 18)
     overlays = L.layerGroup().addTo(map)
     leaflet = L
+    setTiles()
     draw()
+    // Tell the other map where this one went; `applying` stops the echo.
+    map.on('move zoomend', () => {
+      if (applying || !map) return
+      const c = map.getCenter()
+      onview?.({ lat: c.lat, lon: c.lng, zoom: map.getZoom() })
+    })
     // Leaflet measures its box once; tell it when the window or the layout changes the size.
     resized = new ResizeObserver(() => map?.invalidateSize({ debounceMoveend: true }))
     resized.observe(el)
@@ -83,6 +110,20 @@
 
   let overlays: import('leaflet').LayerGroup | undefined
   let leaflet: typeof import('leaflet') | undefined
+  let layer: import('leaflet').TileLayer | undefined
+  let applying = false
+
+  function setTiles() {
+    const L = leaflet
+    if (!L || !map) return
+    layer?.remove()
+    layer = L.tileLayer(tiles.url, {
+      maxZoom: MAX_ZOOM,
+      maxNativeZoom: tiles.maxNativeZoom,
+      attribution: tiles.attribution,
+    }).addTo(map)
+    layer.bringToBack()
+  }
 
   /** (Re)draw radius, nearby objects and the candidate; runs again when OSM data arrives. */
   function draw() {
@@ -107,26 +148,57 @@
         )
         .addTo(overlays)
     }
-    L.circleMarker([lat, lon], {
-      radius: 7,
-      color: '#dc2626',
-      fillColor: '#dc2626',
-      fillOpacity: 0.9,
-    })
-      .bindTooltip('candidate')
-      .addTo(overlays)
+    const at: [number, number] = place ? [place.lat, place.lon] : [lat, lon]
+    if (place)
+      // Where the provider says it is, once the station has been moved away from there.
+      L.circleMarker([lat, lon], { radius: 6, color: '#dc2626', weight: 2, fill: false })
+        .bindTooltip('provider position')
+        .addTo(overlays)
+    if (ondragto) {
+      const drop = ondragto
+      L.marker(at, {
+        draggable: true,
+        keyboard: false,
+        icon: L.divIcon({ className: 'cand-pin', iconSize: [22, 22], iconAnchor: [11, 11] }),
+      })
+        .bindTooltip('drag to the chargers')
+        .on('dragend', (e) => {
+          const p = (e.target as import('leaflet').Marker).getLatLng()
+          drop(p.lat, p.lng)
+        })
+        .addTo(overlays)
+    } else {
+      L.circleMarker(at, { radius: 7, color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.9 })
+        .bindTooltip('candidate')
+        .addTo(overlays)
+    }
   }
 
   $effect(() => {
     // Track the inputs, then redraw (a no-op until the map exists).
-    void [lat, lon, radiusM, nearby]
+    void [lat, lon, radiusM, nearby, place, ondragto]
     draw()
   })
 
-  // One map serves the detail view: follow the selected candidate.
+  // One map serves the detail view: follow the selected candidate, or the shared view.
   $effect(() => {
-    const at: [number, number] = [lat, lon]
-    map?.setView(at, 18)
+    const v = view ?? { lat, lon, zoom: 18 }
+    if (!map) return
+    const c = map.getCenter()
+    if (
+      Math.abs(c.lat - v.lat) < 1e-7 &&
+      Math.abs(c.lng - v.lon) < 1e-7 &&
+      map.getZoom() === v.zoom
+    )
+      return
+    applying = true
+    map.setView([v.lat, v.lon], v.zoom, { animate: false })
+    applying = false
+  })
+
+  $effect(() => {
+    void tiles
+    setTiles()
   })
 
   $effect(() => {
@@ -167,6 +239,16 @@
     height: 100%;
     min-height: 240px;
     border-radius: 8px;
+  }
+  /* The draggable station marker (Leaflet creates the element, so the rule is global). */
+  .minimap :global(.cand-pin) {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #dc2626;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #dc2626;
+    cursor: grab;
   }
   .paused {
     position: absolute;

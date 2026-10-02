@@ -2,6 +2,7 @@
   import {
     changeableKeys,
     defaultSelection,
+    POSITION_FIXME,
     REJECT_REASONS,
     type RejectReason,
     type RowModel,
@@ -11,6 +12,8 @@
   import CopyButton from './CopyButton.svelte'
   import { fmtCoord, fmtDate, fmtDistance, geoUri, osmObjectUrl, osmUrl } from './format'
   import { t, type MessageKey } from './i18n'
+  import { distanceM } from '../geo/distance'
+  import { IMAGERY, resolveTiles } from './imagery'
   import MiniMap from './MiniMap.svelte'
   import type { AppState } from './state.svelte'
   import TagDiff from './TagDiff.svelte'
@@ -54,12 +57,34 @@
     })),
   )
 
+  // The map and the imagery next to it show the same spot.
+  let view = $state({ lat: 0, lon: 0, zoom: 18 })
+  const source = $derived(IMAGERY.find((s) => s.id === app.imagery) ?? IMAGERY[0]!)
+  const imageryTiles = $derived(resolveTiles(source, app.mapboxToken))
+
+  // A new station can be dragged onto the chargers, and flagged when that cannot be checked.
+  const placeable = $derived(
+    row.match.class !== 'linked' &&
+      (action === undefined || action === 'add') &&
+      !row.decision?.uploadedBatchId,
+  )
+  const addOpts = $derived(act.addOptions(app, row))
+  const place = $derived(placeable ? addOpts.position : row.decision?.position)
+  const movedM = $derived(place ? distanceM(c, place) : 0)
+  const shownTags = $derived(
+    placeable && addOpts.fixme ? { ...c.tags, fixme: POSITION_FIXME } : c.tags,
+  )
+  const dragTo = (lat: number, lon: number) =>
+    void run(act.setAddOptions(app, row, { position: { lat, lon } }))
+
   // One detail view serves every row: per-row UI state starts fresh on each selection.
   let shownId = ''
   $effect.pre(() => {
     if (c.sourceId !== shownId) {
       shownId = c.sourceId
+      view = { lat: c.lat, lon: c.lon, zoom: 18 }
       if (app.pickedTarget?.sourceId !== c.sourceId) app.pickedTarget = null
+      if (app.addDraft?.sourceId !== c.sourceId) app.addDraft = null
       problem = null
       rejectOpen = false
       showRaw = false
@@ -181,8 +206,8 @@
       {#if showRaw}<pre class="raw">{JSON.stringify(c.sourceRaw, null, 2)}</pre>{/if}
     </header>
 
-    <div class="grid">
-      <div class="map">
+    <div class="maps">
+      <div class="map" data-testid="map-osm">
         <MiniMap
           big
           web={app.webUrl}
@@ -190,9 +215,69 @@
           lon={c.lon}
           radiusM={row.match.radii.probableM || 50}
           {nearby}
+          {view}
+          onview={(v) => (view = v)}
+          {place}
+          ondragto={placeable ? dragTo : undefined}
         />
       </div>
+      <div class="map imagery" data-testid="map-imagery">
+        <select
+          class="layer"
+          aria-label={t('imagery.pick')}
+          value={source.id}
+          onchange={(e) => app.setImagery(e.currentTarget.value)}
+        >
+          {#each IMAGERY as s (s.id)}<option value={s.id}>{s.name}</option>{/each}
+        </select>
+        {#if imageryTiles}
+          <MiniMap
+            big
+            web={app.webUrl}
+            lat={c.lat}
+            lon={c.lon}
+            radiusM={row.match.radii.probableM || 50}
+            {nearby}
+            tiles={imageryTiles}
+            {view}
+            onview={(v) => (view = v)}
+            {place}
+            ondragto={placeable ? dragTo : undefined}
+          />
+        {:else}
+          <p class="no-token">{t('imagery.needsToken')}</p>
+        {/if}
+      </div>
+    </div>
+
+    <div class="grid">
       <div class="side">
+        {#if placeable}
+          <div class="place" data-testid="place">
+            {#if place}
+              <span data-testid="moved"
+                >{t('add.moved', { d: fmtDistance(movedM) })}
+                <button
+                  type="button"
+                  class="link"
+                  onclick={() => void run(act.setAddOptions(app, row, { position: null }))}
+                  >{t('add.reset')}</button
+                ></span
+              >
+            {:else}
+              <span>{t('add.dragHint')}</span>
+            {/if}
+            <label title={t('add.fixmeHint')}>
+              <input
+                type="checkbox"
+                checked={addOpts.fixme}
+                onchange={(e) =>
+                  void run(act.setAddOptions(app, row, { fixme: e.currentTarget.checked }))}
+              />
+              {t('add.fixme')}
+            </label>
+          </div>
+        {/if}
         {#if row.targets.length > 1 || (action === 'update' && row.targets.length > 0)}
           <div class="targets" role="radiogroup" aria-label={t('row.target')}>
             <span class="label">{t('row.target')}</span>
@@ -246,7 +331,7 @@
 
     <h3>{t('detail.changes')} <small>{t('detail.changesHint')}</small></h3>
     <TagDiff
-      candidateTags={c.tags}
+      candidateTags={shownTags}
       {target}
       {selected}
       editable={decidedOnTarget}
@@ -379,15 +464,48 @@
     padding: 0.5rem;
     border-radius: 6px;
   }
-  .grid {
+  .maps {
     display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 1rem;
-    min-height: 260px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.6rem;
+    min-height: 300px;
   }
   .map {
     display: flex;
-    min-height: 260px;
+    min-height: 300px;
+    position: relative;
+  }
+  .layer {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 1000;
+    max-width: calc(100% - 4.5rem);
+    font-size: 0.78rem;
+  }
+  .no-token {
+    margin: 0;
+    padding: 3rem 1rem 1rem;
+    width: 100%;
+    background: var(--muted-bg);
+    border-radius: 8px;
+    font-size: 0.85rem;
+  }
+  .place {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    align-items: center;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--change-bg);
+    font-size: 0.82rem;
+  }
+  .place label {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
   }
   .side {
     display: flex;
@@ -531,7 +649,7 @@
     align-items: center;
   }
   @container (max-width: 36rem) {
-    .grid {
+    .maps {
       grid-template-columns: minmax(0, 1fr);
     }
     .actions {

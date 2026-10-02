@@ -17,6 +17,7 @@ export function toRecord(datasetId: string, sourceId: string, d: Decision): Deci
   if (d.targetVersion !== undefined) r.targetVersion = d.targetVersion
   if (d.tags) r.tags = d.tags
   if (d.move) r.move = true
+  if (d.position) r.position = { lat: d.position.lat, lon: d.position.lon }
   if (d.reasonCode) r.reasonCode = d.reasonCode
   if (d.note) r.note = d.note
   if (d.supersededBy) r.supersededBy = d.supersededBy
@@ -36,6 +37,7 @@ export function fromRecord(r: DecisionRecord): Decision {
   if (r.targetVersion !== undefined) d.targetVersion = r.targetVersion
   if (r.tags) d.tags = r.tags
   if (r.move) d.move = true
+  if (r.position) d.position = { lat: r.position.lat, lon: r.position.lon }
   if (r.reasonCode) d.reasonCode = r.reasonCode as Decision['reasonCode']
   if (r.note) d.note = r.note
   if (r.supersededBy) d.supersededBy = r.supersededBy

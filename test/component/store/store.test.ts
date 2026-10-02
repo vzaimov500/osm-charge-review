@@ -214,6 +214,13 @@ describe('decisions', () => {
     expect((await loadDecisions(db, 'ds')).size).toBe(0)
   })
 
+  test('record conversion keeps the position chosen for an Add', () => {
+    const d = decide({ action: 'add', position: { lat: 42.5, lon: 23.25 } })
+    delete d.reasonCode
+    expect(toRecord('ds', 's', d).position).toEqual({ lat: 42.5, lon: 23.25 })
+    expect(fromRecord(toRecord('ds', 's', d))).toEqual(d)
+  })
+
   test('record conversion round-trips minimal decisions', () => {
     const d = decide({ action: 'skip', reasonCode: undefined })
     delete d.reasonCode
