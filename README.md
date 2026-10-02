@@ -47,7 +47,9 @@ approved — with their own OpenStreetMap account.
 3. **Decide** each row: _Add_, _Update_, _Reject_ (with a reason) or _Skip_.
    Nothing is pre-selected. For updates, conflicting values on keys a person
    plausibly surveyed need a per-key tick, and existing tags are never removed.
-   Keyboard: `j`/`k` move, `a`/`u`/`r`/`s` decide, `/` searches.
+   Keyboard (by key position, so any layout works): `1` Update, `2` Add,
+   `3` Reject, `4` Skip, `W`/`S` previous/next, `Q`/`E` previous/next
+   undecided, `F` search.
 4. Filters (class, decision, action, update-needed vs already-correct,
    warnings, distance, region, text) are kept in the URL, so a view can be
    bookmarked or shared.

@@ -15,8 +15,9 @@ LicenseRef-permission` and give `permission_url`, or use a compatible licence.
    is translated (link the adapter's `MAPPING.md`), resulting tags, the
    account name, the changeset tagging scheme, and a progress log.
 3. **`Import/Catalogue` entry, and the source on the Contributors page.**
-4. **Community review.** A Community Forum post using the import template and
-   the `import` tag, plus a message to the local community. **Wait 14 days**
+4. **Community review.** A Community Forum post titled "Proposed import of …",
+   using the import template and the tags `import` and `import-proposal`, plus
+   a message to the local community. **Wait 14 days**
    and resolve raised concerns. The tool computes the waiting period from the
    date you enter.
 5. **A dedicated import account** named `<username>_Import`, linked from your
@@ -27,9 +28,9 @@ LicenseRef-permission` and give `permission_url`, or use a compatible licence.
 1. Create a sandbox account at <https://master.apis.dev.openstreetmap.org>.
 2. Register an OAuth2 application there: _My Settings → OAuth 2 applications →
    Register new application_.
-   - Redirect URI: exactly the URL shown in the Upload panel
-     (`…/land.html` next to the page) — it is built from the address you
-     open the app at, so `localhost` and `127.0.0.1` are different addresses.
+   - Redirect URI: `land.html` next to the address you open the app at, e.g.
+     `https://vzaimov500.github.io/osm-charge-review/land.html`. `localhost`
+     and `127.0.0.1` are different addresses.
      OSM accepts only `https` addresses, even for your own machine. To run
      locally, create a self-signed certificate once with `pnpm cert`, then use
      `pnpm dev:https` (opens `https://localhost:5173/`) or
@@ -39,24 +40,25 @@ LicenseRef-permission` and give `permission_url`, or use a compatible licence.
      certificate warning once.
    - Scopes: _Read user preferences_ and _Modify the map_.
    - Confidential application: **no** (PKCE, no secret).
-3. Sign in from the Upload panel. The project's sandbox client id is built in;
-   paste your own only if you registered your own app (a copy served elsewhere).
+3. Choose **Sandbox (test)** at the top (it reads and writes the sandbox) and
+   sign in. The project's sandbox client id is built in; a copy served from
+   another address needs its own app, set at build time with
+   `VITE_OSM_SANDBOX_CLIENT_ID`.
 4. Follow the sandbox protocol. Seed with
    `OSM_SANDBOX_TOKEN=… npx tsx scripts/seed-sandbox.ts`, load the written
-   `sandbox-seed.candidates.json`, pick **Sandbox API (test data)** as the OSM
-   data source and fetch, and check the classes with
+   `sandbox-seed.candidates.json`, fetch the OSM data, and check the classes with
    `npx tsx scripts/check-sandbox-seed.ts`. Then exercise
    every action, create a version conflict on purpose, revert a batch, and read
    every changeset back.
 
 ## 2. Reviewing
 
-See the README's _Reviewing_ section. Export your state regularly: the header
-turns orange when decisions have been made since the last export.
+See the README's _Reviewing_ section. Export your state regularly: the status
+line turns orange when decisions have been made since the last export.
 
 ## 3. Uploading
 
-1. _Apply batch_ → _Plan batches_. Batches are grouped by geography, up to 50
+1. **Upload · N ready** → **Plan batches from ready decisions**. Batches are grouped by geography, up to 50
    each (10 for the first live batches).
 2. **Dry run** each batch and open the `.osc` in JOSM. Run the validator and
    look at it. For live batches this is required before _Upload_ unlocks.
