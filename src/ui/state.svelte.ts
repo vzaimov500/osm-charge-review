@@ -141,6 +141,8 @@ export class AppState {
   pendingImport = $state.raw<{ file: StateFile; plan: ImportPlan; name: string } | null>(null)
   /** Set by the keyboard handler to open the reject-reason picker on a row. */
   rejectRequest = $state<string | null>(null)
+  /** The object picked in "Update which object?", before (or instead of) a saved Update. */
+  pickedTarget = $state<{ sourceId: string; key: string } | null>(null)
 
   rows: RowModel[] = $derived.by(() => {
     const objectsByKey = new Map(this.objects.map((o) => [osmKey(o), o]))
@@ -391,6 +393,11 @@ export class AppState {
         !r.decision!.uploadedBatchId &&
         (r.decision!.action === 'add' || r.decision!.action === 'update'),
     ).length
+  }
+
+  /** Website of the selected environment: object and map links open there. */
+  get webUrl(): string {
+    return TARGETS[this.target].authUrl
   }
 
   /** Edits may be written: always to the sandbox; to live only once unlocked. */

@@ -8,8 +8,10 @@ export const fmtDateTime = (iso: string): string => {
   return Number.isNaN(d.getTime()) ? iso : `${d.toISOString().slice(0, 16).replace('T', ' ')} UTC`
 }
 export const fmtDate = (iso: string): string => iso.slice(0, 10)
-export const osmUrl = (lat: number, lon: number): string =>
-  `https://www.openstreetmap.org/?mlat=${fmtCoord(lat)}&mlon=${fmtCoord(lon)}#map=19/${fmtCoord(lat)}/${fmtCoord(lon)}`
-export const osmObjectUrl = (type: string, id: number): string =>
-  `https://www.openstreetmap.org/${type}/${id}`
+/** The website of the environment the links should open: live OSM unless told otherwise. */
+export const OSM_WEB = 'https://www.openstreetmap.org'
+export const osmUrl = (lat: number, lon: number, web = OSM_WEB): string =>
+  `${web}/?mlat=${fmtCoord(lat)}&mlon=${fmtCoord(lon)}#map=19/${fmtCoord(lat)}/${fmtCoord(lon)}`
+export const osmObjectUrl = (type: string, id: number, web = OSM_WEB): string =>
+  `${web}/${type}/${id}`
 export const geoUri = (lat: number, lon: number): string => `geo:${fmtCoord(lat)},${fmtCoord(lon)}`

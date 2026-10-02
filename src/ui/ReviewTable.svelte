@@ -85,7 +85,7 @@
         break
       case 'Digit1':
       case 'Numpad1':
-        if (row && row.targets.length > 0) void act.update(app, row)
+        if (row && row.targets.length > 0) void act.update(app, row, act.shownTarget(app, row))
         break
       case 'Digit2':
       case 'Numpad2':

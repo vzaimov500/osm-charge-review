@@ -27,6 +27,7 @@
     radiusM,
     nearby,
     big = false,
+    web,
   }: {
     lat: number
     lon: number
@@ -34,6 +35,8 @@
     nearby: Nearby[]
     /** The detail view's map: fills its box, with zoom controls. */
     big?: boolean
+    /** Website the object links open on (sandbox or live). */
+    web?: string
   } = $props()
 
   let el: HTMLDivElement
@@ -100,7 +103,7 @@
         .join('<br>')
       L.circleMarker([n.lat, n.lon], { radius: 6, color, fillOpacity: 0.7 })
         .bindPopup(
-          `<a href="${osmObjectUrl(n.type, n.id)}" target="_blank" rel="noopener">${n.type}/${n.id}</a> · ${escapeHtml(n.label)}<br><small>${tags}</small>`,
+          `<a href="${osmObjectUrl(n.type, n.id, web)}" target="_blank" rel="noopener">${n.type}/${n.id}</a> · ${escapeHtml(n.label)}<br><small>${tags}</small>`,
         )
         .addTo(overlays)
     }

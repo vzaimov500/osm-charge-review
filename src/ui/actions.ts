@@ -24,6 +24,39 @@ export function updateTarget(row: RowModel): TargetView | undefined {
   return chosenTarget(row) ?? row.suggested ?? row.targets[0]
 }
 
+const targetKey = (tv: TargetView): string => `${tv.object.osmType}/${tv.object.osmId}`
+
+/** The object picked in the detail view for this row, if it is still nearby. */
+export function pickedTarget(app: AppState, row: RowModel): TargetView | undefined {
+  const p = app.pickedTarget
+  if (!p || p.sourceId !== row.candidate.sourceId) return undefined
+  return row.targets.find((tv) => targetKey(tv) === p.key)
+}
+
+/** What the detail view shows and what Update (button or key) uses. */
+export function shownTarget(app: AppState, row: RowModel): TargetView | undefined {
+  return (
+    pickedTarget(app, row) ??
+    (row.decision?.action === 'update' ? chosenTarget(row) : undefined) ??
+    row.suggested
+  )
+}
+
+/**
+ * Pick the object to update. One that needs changes becomes the Update
+ * decision; one that is already correct leaves nothing to update, so an
+ * Update on another object is withdrawn instead of silently staying.
+ */
+export async function pickTarget(app: AppState, row: RowModel, tv: TargetView): Promise<string[]> {
+  app.pickedTarget = { sourceId: row.candidate.sourceId, key: targetKey(tv) }
+  const problems = await update(app, row, tv)
+  if (problems.length === 1 && problems[0] === 'update_changes_nothing') {
+    if (row.decision?.action === 'update') await app.decide(row, null)
+    return []
+  }
+  return problems
+}
+
 export function add(app: AppState, row: RowModel): Promise<string[]> {
   return app.decide(
     row,

@@ -23,11 +23,14 @@
 
   const c = $derived(row.candidate)
   const action = $derived(row.decision?.action)
-  const target: TargetView | undefined = $derived(
-    action === 'update' ? act.chosenTarget(row) : row.suggested,
+  const target: TargetView | undefined = $derived(act.shownTarget(app, row))
+  const decidedOnTarget = $derived(
+    action === 'update' &&
+      row.decision?.target?.osmType === target?.object.osmType &&
+      row.decision?.target?.osmId === target?.object.osmId,
   )
   const selected = $derived.by(() => {
-    if (action === 'update' && row.decision?.tags) return new Set(Object.keys(row.decision.tags))
+    if (decidedOnTarget && row.decision?.tags) return new Set(Object.keys(row.decision.tags))
     const tv = target
     return new Set(
       tv
@@ -56,6 +59,7 @@
   $effect.pre(() => {
     if (c.sourceId !== shownId) {
       shownId = c.sourceId
+      if (app.pickedTarget?.sourceId !== c.sourceId) app.pickedTarget = null
       problem = null
       rejectOpen = false
       showRaw = false
@@ -99,7 +103,8 @@
   }
 
   function pickTarget(tv: TargetView) {
-    void run(act.update(app, row, tv))
+    problem = null
+    void run(act.pickTarget(app, row, tv))
   }
 
   function setMove(on: boolean) {
@@ -114,7 +119,7 @@
   function choose(a: 'add' | 'update' | 'reject' | 'skip') {
     problem = null
     if (a === 'add') void run(act.add(app, row))
-    if (a === 'update') void run(act.update(app, row))
+    if (a === 'update') void run(act.update(app, row, target))
     if (a === 'skip') void run(act.skip(app, row))
     if (a === 'reject') rejectOpen = true
   }
@@ -153,8 +158,10 @@
         <code>{fmtCoord(c.lat)}, {fmtCoord(c.lon)}</code>
         <CopyButton text={`${fmtCoord(c.lat)}, ${fmtCoord(c.lon)}`} label="lat, lon" />
         <CopyButton text={geoUri(c.lat, c.lon)} label="geo:" />
-        <CopyButton text={osmUrl(c.lat, c.lon)} label="osm.org" />
-        <a href={osmUrl(c.lat, c.lon)} target="_blank" rel="noopener">{t('row.openOsm')} ↗</a>
+        <CopyButton text={osmUrl(c.lat, c.lon, app.webUrl)} label="osm.org" />
+        <a href={osmUrl(c.lat, c.lon, app.webUrl)} target="_blank" rel="noopener"
+          >{t('row.openOsm')} ↗</a
+        >
         {#if c.sourceRaw}
           <button type="button" class="link" onclick={() => (showRaw = !showRaw)}
             >{t('row.sourceRaw')}</button
@@ -166,7 +173,14 @@
 
     <div class="grid">
       <div class="map">
-        <MiniMap big lat={c.lat} lon={c.lon} radiusM={row.match.radii.probableM || 50} {nearby} />
+        <MiniMap
+          big
+          web={app.webUrl}
+          lat={c.lat}
+          lon={c.lon}
+          radiusM={row.match.radii.probableM || 50}
+          {nearby}
+        />
       </div>
       <div class="side">
         {#if row.targets.length > 1 || (action === 'update' && row.targets.length > 0)}
@@ -184,7 +198,7 @@
                 />
                 <span>
                   <a
-                    href={osmObjectUrl(tv.object.osmType, tv.object.osmId)}
+                    href={osmObjectUrl(tv.object.osmType, tv.object.osmId, app.webUrl)}
                     target="_blank"
                     rel="noopener">{tv.object.osmType}/{tv.object.osmId}</a
                   >
@@ -225,11 +239,13 @@
       candidateTags={c.tags}
       {target}
       {selected}
-      editable={action === 'update'}
+      editable={decidedOnTarget}
       ontoggle={toggle}
       fold
     />
-    {#if row.noop && action !== 'update'}<div class="ok-text">{t('row.noop')}</div>{/if}
+    {#if target && !target.divergence.updateNeeded && !decidedOnTarget}<div class="ok-text">
+        {t('row.noop')}
+      </div>{/if}
   </div>
 
   <div class="decide">
