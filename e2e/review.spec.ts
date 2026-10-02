@@ -233,13 +233,17 @@ test('the layout follows the window: no sideways scroll, filters become a drawer
   await expect(page.getByTestId('map-osm').locator('.leaflet-container')).toBeVisible()
   await page.setViewportSize({ width: 1400, height: 800 })
   await expect(filters).toBeVisible()
+  // Both maps load a moment after they come into view: wait for the imagery one too.
+  const imagery = page.getByTestId('map-imagery')
+  await expect(imagery.locator('.cand-pin')).toBeVisible()
   await expect
     .poll(() =>
       page.evaluate(() => {
-        // Both maps: the station marker sits in the middle of each.
-        const map = document.querySelector('[data-testid="map-imagery"] .leaflet-container')!
+        const map = document.querySelector('[data-testid="map-imagery"] .leaflet-container')
+        const pin = map?.querySelector('.cand-pin')
+        if (!map || !pin) return Infinity // being redrawn: ask again
         const box = map.getBoundingClientRect()
-        const d = map.querySelector('.cand-pin')!.getBoundingClientRect()
+        const d = pin.getBoundingClientRect()
         return Math.abs(d.x + d.width / 2 - (box.x + box.width / 2))
       }),
     )
