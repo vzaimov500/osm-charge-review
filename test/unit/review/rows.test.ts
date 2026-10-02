@@ -126,6 +126,15 @@ describe('validateDecision', () => {
     expect(validateDecision(r!, decision(d))).toEqual(problems)
   })
 
+  test('a linked station cannot be added again', () => {
+    const l = cand()
+    const [lr] = rows([l], [obj(30, { ...l.tags })])
+    expect(lr!.match.class).toBe('linked')
+    expect(validateDecision(lr!, decision({ action: 'add', tags: l.tags }))).toEqual([
+      'add_when_linked',
+    ])
+  })
+
   test('an update targeting a do-not-touch object is refused', () => {
     const cfg = { ...DEFAULT_MATCH_CONFIG, doNotTouch: { objects: [`node/${o.osmId}`], users: [] } }
     const [r2] = rows([c], [o], {}, cfg)

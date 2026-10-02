@@ -68,18 +68,22 @@ test.describe('review queue', () => {
     await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
     await expect(rows.nth(0)).toHaveClass(/sel/)
     await page.locator('body').press('s')
-    await page.locator('body').press('2') // add row 2
-    await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
-    await page.locator('body').press('s')
-    await page.locator('body').press('3') // reject row 3 → reason picker
+    // Row 2 is linked (an OSM object carries its ref): Add would duplicate it.
+    await expect(rows.nth(1)).toHaveAttribute('data-code', /^L/)
+    await expect(page.getByRole('radio', { name: /Add/ })).toBeDisabled()
+    await page.locator('body').press('2')
+    await page.locator('body').press('3') // reject row 2 → reason picker
     await page.getByRole('combobox', { name: 'Reason' }).selectOption('duplicate')
-    await expect(rows.nth(2)).toHaveAttribute('data-decision', 'reject')
+    await expect(rows.nth(1)).toHaveAttribute('data-decision', 'reject')
+    await page.locator('body').press('s')
+    await page.locator('body').press('2') // add row 3
+    await expect(rows.nth(2)).toHaveAttribute('data-decision', 'add')
 
     await page.reload()
     await expect(page.getByText('600 of 600')).toBeVisible()
     await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
-    await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
-    await expect(rows.nth(2)).toHaveAttribute('data-decision', 'reject')
+    await expect(rows.nth(1)).toHaveAttribute('data-decision', 'reject')
+    await expect(rows.nth(2)).toHaveAttribute('data-decision', 'add')
     await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
   })
 

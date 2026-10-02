@@ -165,6 +165,7 @@ export const DECISION_PROBLEMS = [
   'update_changes_nothing',
   'reject_without_reason',
   'add_without_tags',
+  'add_when_linked',
 ] as const
 export type DecisionProblem = (typeof DECISION_PROBLEMS)[number]
 
@@ -185,5 +186,7 @@ export function validateDecision(row: RowModel, d: Decision): DecisionProblem[] 
   if (d.action === 'reject' && d.reasonCode === undefined) out.push('reject_without_reason')
   if (d.action === 'add' && (d.tags === undefined || Object.keys(d.tags).length === 0))
     out.push('add_without_tags')
+  // Linked: an OSM object already carries this record's ref, so an Add can only duplicate it.
+  if (d.action === 'add' && row.match.class === 'linked') out.push('add_when_linked')
   return out
 }

@@ -78,11 +78,21 @@
 
   // Update needs an existing OSM object nearby to change.
   const canUpdate = $derived(row.targets.length > 0)
+  // A linked station is already in OSM: adding it again can only duplicate it.
+  const canAdd = $derived(row.match.class !== 'linked')
+  const off = (a: string) => (a === 'update' && !canUpdate) || (a === 'add' && !canAdd)
+  const offTitle = (a: string) =>
+    a === 'update' && !canUpdate
+      ? t('detail.noUpdate')
+      : a === 'add' && !canAdd
+        ? t('detail.noAdd')
+        : undefined
 
   // One line under the buttons says what the station is waiting for.
   const step = $derived.by(() => {
     if (rejectOpen && action !== 'reject') return t('detail.step.reason')
     if (!action) return t('detail.step.choose')
+    if (action === 'add' && !canAdd) return t('problem.add_when_linked')
     return t('detail.step.done', { action: t(`action.${action}`) })
   })
 
@@ -253,8 +263,8 @@
       {#each ['update', 'add', 'reject', 'skip'] as const as a, i (a)}
         <label
           class="action action-{a}"
-          class:off={a === 'update' && !canUpdate}
-          title={a === 'update' && !canUpdate ? t('detail.noUpdate') : undefined}
+          class:off={off(a)}
+          title={offTitle(a)}
           class:on={action === a || (a === 'reject' && rejectOpen && !action)}
           class:suggested={!action &&
             ((a === 'update' && !!row.suggested) || (a === 'add' && row.targets.length === 0))}
@@ -263,7 +273,7 @@
             type="radio"
             name={`action-${c.sourceId}`}
             checked={action === a}
-            disabled={a === 'update' && !canUpdate}
+            disabled={off(a)}
             onchange={() => choose(a)}
           />
           {t(`action.${a}`)} <kbd>{i + 1}</kbd>

@@ -89,7 +89,7 @@
         break
       case 'Digit2':
       case 'Numpad2':
-        if (row) void act.add(app, row)
+        if (row && row.match.class !== 'linked') void act.add(app, row)
         break
       case 'Digit3':
       case 'Numpad3':

@@ -327,10 +327,13 @@ export class AppState {
     const ready = this.rows.filter(
       (r) => r.decided && r.decision && !planned.has(r.candidate.sourceId),
     )
+    // An Add decided before the station turned up in OSM with its ref would duplicate it.
+    const duplicates = ready.filter(addsDuplicate).length
     const inputs = ready
+      .filter((r) => !addsDuplicate(r))
       .filter((r) => sameData || r.decision!.action !== 'update')
       .map((r) => ({ candidate: r.candidate, decision: r.decision! }))
-    const held = ready.length - inputs.length
+    const held = ready.length - inputs.length - duplicates
     // Until a live batch has been verified, live batches stay small and local.
     const firstLive = this.target === 'live' && !this.batches.some((b) => b.status === 'verified')
     const made = await createBatches(db, inputs, {
@@ -341,12 +344,15 @@ export class AppState {
       ...(firstLive ? FIRST_LIVE_BATCH : {}),
     })
     await this.loadBatches()
-    this.notice = held
-      ? {
-          kind: 'error',
-          text: t('upload.heldForSource', { n: made.length, held, target: this.target }),
-        }
-      : { kind: 'info', text: t('upload.planned', { n: made.length }) }
+    const text = [
+      held
+        ? t('upload.heldForSource', { n: made.length, held, target: this.target })
+        : t('upload.planned', { n: made.length }),
+      duplicates ? t('upload.heldLinked', { n: duplicates }) : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+    this.notice = { kind: held || duplicates ? 'error' : 'info', text }
   }
 
   async discardBatch(b: BatchRecord): Promise<void> {
@@ -391,6 +397,7 @@ export class AppState {
       (r) =>
         r.decided &&
         !r.decision!.uploadedBatchId &&
+        !addsDuplicate(r) &&
         (r.decision!.action === 'add' || r.decision!.action === 'update'),
     ).length
   }
@@ -795,6 +802,11 @@ export class AppState {
       throw e
     }
   }
+}
+
+/** A not-yet-uploaded Add on a station already in OSM (an object carries its ref). */
+function addsDuplicate(r: RowModel): boolean {
+  return r.decision?.action === 'add' && !r.decision.uploadedBatchId && r.match.class === 'linked'
 }
 
 function stripObject<T extends OsmObject>(

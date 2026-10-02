@@ -60,6 +60,7 @@ export const en = {
   'detail.step.reason': 'Pick a reason to finish the reject.',
   'detail.step.done': 'Saved: {action}. You can change it at any time. S next · E next undecided.',
   'detail.noUpdate': 'Nothing to update: no existing OSM station nearby.',
+  'detail.noAdd': 'Already in OSM: an object carries this ref, so adding would duplicate it.',
   'class.linked': 'Linked: an OSM object already carries this record’s ref',
   'class.probable': 'Probable: a station within 50 m with the same brand, network or operator',
   'class.possible': 'Possible: something nearby, but less certain — check it',
@@ -97,6 +98,8 @@ export const en = {
     'This update would change nothing. Tick a tag to write, or the move option.',
   'problem.reject_without_reason': 'Pick a reason for rejecting.',
   'problem.add_without_tags': 'There are no tags to add.',
+  'problem.add_when_linked':
+    'This station is already in OSM (an object carries its ref): use Update, Skip or Reject.',
   'row.addWarning': 'A matching station already exists nearby — adding may create a duplicate.',
   'row.noop': 'Already correct — nothing to change.',
   'row.superseded': 'The provider changed this record after your decision. Re-confirm it.',
@@ -148,6 +151,8 @@ export const en = {
   'upload.plan': '1 · Plan batches from ready decisions',
   'upload.steps':
     'Steps: 1 plan batches from your ready decisions → 2 dry run (download the .osc and check it in JOSM; required for live) → 3 upload → 4 the batch is read back and verified; revert if needed.',
+  'upload.heldLinked':
+    '{n} Add decisions left out: those stations are already in OSM with their ref. Change them to Update or Skip.',
   'upload.planned': '{n} batches planned.',
   'upload.heldForSource':
     '{n} batches planned. {held} updates were held back: they were decided on data from another server than {target}. Fetch the {target} data and re-check them first.',
