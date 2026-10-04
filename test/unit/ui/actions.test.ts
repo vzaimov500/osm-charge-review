@@ -79,6 +79,9 @@ test('a position and a fixme set before Add are used by Add; afterwards they cha
   const row = () => rows([c], [], decisions)[0]!
   const spot = { lat: c.lat + 0.0002, lon: c.lon + 0.0002 }
 
+  // Nothing in OSM nearby: flagged until the reviewer has checked the place.
+  expect(addOptions(app, row())).toEqual({ fixme: true })
+  await setAddOptions(app, row(), { fixme: false })
   expect(addOptions(app, row())).toEqual({ fixme: false })
   await setAddOptions(app, row(), { position: spot })
   await setAddOptions(app, row(), { fixme: true })
@@ -97,15 +100,15 @@ test('a position and a fixme set before Add are used by Add; afterwards they cha
   expect(decisions[c.sourceId]!.position).toEqual(spot)
   await setAddOptions(app, row(), { position: null })
   expect(decisions[c.sourceId]!.position).toBeUndefined()
-  expect(addOptions(app, row())).toEqual({ fixme: false })
+  expect(addOptions(app, row())).toEqual({ fixme: false }) // the saved Add, not the default
 })
 
 test('what was set for one station does not leak to another; too far is refused', async () => {
   const [a, b] = [cand(), cand()]
   const { app, decisions } = fakeApp()
   const [ra, rb] = rows([a, b], [], decisions)
-  await setAddOptions(app, ra!, { fixme: true })
-  expect(addOptions(app, rb!)).toEqual({ fixme: false })
+  await setAddOptions(app, ra!, { fixme: false })
+  expect(addOptions(app, rb!)).toEqual({ fixme: true })
   expect(
     await add(app, rb!, { fixme: false, position: { lat: b.lat + 0.01, lon: b.lon } }),
   ).toEqual(['position_too_far'])
@@ -117,4 +120,12 @@ test('imagery: a layer that needs a token is unavailable without one', () => {
   expect(resolveTiles(mapbox, ' pk.a b ')!.url).toContain('access_token=pk.a%20b')
   expect(resolveTiles(OSM_TILES, '')).toBe(OSM_TILES)
   expect(IMAGERY.map((s) => s.id)).toEqual(['maf', 'esri', 'mapbox'])
+})
+
+test('a station with something in OSM nearby is not flagged by default', () => {
+  const c = cand()
+  const { app } = fakeApp()
+  const [r] = rows([c], [obj(80, { amenity: 'charging_station' })])
+  expect(r!.targets.length).toBeGreaterThan(0)
+  expect(addOptions(app, r!)).toEqual({ fixme: false })
 })

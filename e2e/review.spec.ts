@@ -250,7 +250,7 @@ test('the layout follows the window: no sideways scroll, filters become a drawer
     .toBeLessThan(4)
 })
 
-test('a new station can be placed on the imagery and flagged; both survive a reload', async ({
+test('a new station can be placed on the imagery; flagged by default; both survive a reload', async ({
   page,
 }) => {
   await offline(page)
@@ -272,7 +272,8 @@ test('a new station can be placed on the imagery and flagged; both survive a rel
   await page.mouse.move(box.x + 70, box.y + 45, { steps: 6 })
   await page.mouse.up()
   await expect(page.getByTestId('moved')).toContainText(/Placed \d+(\.\d)? m from the provider/)
-  await page.getByLabel(/Position not verified/).check()
+  // Nothing in OSM nearby: flagged by default, until the reviewer unticks it.
+  await expect(page.getByLabel(/Position not verified/)).toBeChecked()
   await expect(page.locator('section.detail')).toContainText('not verified on imagery')
 
   // Dragging decides nothing; Add takes the position and the flag with it.
@@ -289,4 +290,9 @@ test('a new station can be placed on the imagery and flagged; both survive a rel
   await expect(imagery.getByRole('combobox', { name: 'Imagery' })).toHaveValue('esri')
   await page.getByRole('button', { name: 'Put it back' }).click()
   await expect(page.getByTestId('moved')).toHaveCount(0)
+  // Seen on the imagery: untick, and the saved Add drops the fixme.
+  await page.getByLabel(/Position not verified/).uncheck()
+  await expect(page.locator('section.detail')).not.toContainText('not verified on imagery')
+  await page.reload()
+  await expect(page.getByLabel(/Position not verified/)).not.toBeChecked()
 })

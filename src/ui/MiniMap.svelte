@@ -159,7 +159,7 @@
       L.marker(at, {
         draggable: true,
         keyboard: false,
-        icon: L.divIcon({ className: 'cand-pin', iconSize: [22, 22], iconAnchor: [11, 11] }),
+        icon: L.divIcon({ className: 'cand-pin', iconSize: [26, 26], iconAnchor: [13, 13] }),
       })
         .bindTooltip('drag to the chargers')
         .on('dragend', (e) => {
@@ -241,13 +241,17 @@
     border-radius: 8px;
   }
   /* The draggable station marker (Leaflet creates the element, so the rule is global). */
+  /* A ring with a pinpoint: the ground under it stays visible, the centre is the exact spot. */
   .minimap :global(.cand-pin) {
-    width: 22px;
-    height: 22px;
+    box-sizing: border-box;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    background: #dc2626;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 2px #dc2626;
+    border: 3px solid #dc2626;
+    background: radial-gradient(circle, #dc2626 0 2px, transparent 2.5px);
+    box-shadow:
+      0 0 0 1.5px #fff,
+      inset 0 0 0 1.5px #fff;
     cursor: grab;
   }
   .paused {

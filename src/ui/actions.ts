@@ -66,7 +66,11 @@ export interface AddOptions {
   fixme: boolean
 }
 
-/** From the saved Add, else from what was set before choosing Add. */
+/**
+ * From the saved Add, else from what was set before choosing Add, else the
+ * default: a station with nothing in OSM nearby is flagged until the reviewer
+ * has seen it on imagery and unticks the flag.
+ */
 export function addOptions(app: AppState, row: RowModel): AddOptions {
   const d = row.decision
   if (d?.action === 'add') {
@@ -80,7 +84,7 @@ export function addOptions(app: AppState, row: RowModel): AddOptions {
     if (draft.position) o.position = draft.position
     return o
   }
-  return { fixme: false }
+  return { fixme: row.targets.length === 0 }
 }
 
 export function add(
