@@ -52,6 +52,58 @@ export function planBatches<T extends Placed>(
   return out
 }
 
+/** Without known areas, batches may be this wide: one changeset roughly per city and its surroundings. */
+export const FALLBACK_SPAN_KM = 50
+
+export interface PlannedGroup<T> {
+  /** The administrative area all items share; undefined for the fallback groups. */
+  area?: string
+  items: T[]
+}
+
+/**
+ * One batch per administrative area (e.g. an oblast). An area with more than
+ * `maxItems` is split into equal, geographically compact parts; items whose
+ * area is unknown are grouped by distance instead. Deterministic.
+ */
+export function planBatchesByArea<T extends Placed>(
+  items: readonly T[],
+  areaOf: (item: T) => string | undefined,
+  o: { maxItems?: number; fallbackSpanKm?: number } = {},
+): PlannedGroup<T>[] {
+  const maxItems = o.maxItems ?? 50
+  const byArea = new Map<string, T[]>()
+  const unknown: T[] = []
+  for (const it of items) {
+    const a = areaOf(it)
+    if (a === undefined) unknown.push(it)
+    else byArea.set(a, [...(byArea.get(a) ?? []), it])
+  }
+  const out: PlannedGroup<T>[] = []
+  for (const area of [...byArea.keys()].sort((a, b) => a.localeCompare(b, 'en'))) {
+    const its = byArea.get(area)!
+    const parts = Math.ceil(its.length / maxItems)
+    const size = Math.ceil(its.length / parts)
+    for (const g of planBatches(its, { maxItems: size, maxSpanKm: Infinity }))
+      out.push({ area, items: g })
+  }
+  for (const g of planBatches(unknown, {
+    maxItems,
+    maxSpanKm: o.fallbackSpanKm ?? FALLBACK_SPAN_KM,
+  }))
+    out.push({ items: g })
+  return out
+}
+
+/**
+ * How an oblast is named in a changeset comment: "област Бургас",
+ * "Софийска област". Names that are not Cyrillic are used as they are.
+ */
+export function oblastLabel(name: string): string {
+  if (!/[\u0400-\u04FF]/.test(name)) return name
+  return /ска$/.test(name) ? `${name} област` : `област ${name}`
+}
+
 export function spanM(points: readonly LonLat[]): number {
   const b = bboxOf(points)
   return b ? distanceM({ lon: b.minLon, lat: b.minLat }, { lon: b.maxLon, lat: b.maxLat }) : 0

@@ -8,7 +8,14 @@ import type { Candidate, DatasetInfo } from '../format'
 import { applyChanges, isNoopUpdate, type Decision } from '../review'
 import { appendEvent, type ApiTarget, type BatchItem, type BatchRecord, type DB } from '../store/db'
 import { CREATED_BY } from '../version'
-import { changesetTags, planBatches, type BatchPlanOptions } from './build/batch'
+import {
+  changesetTags,
+  oblastLabel,
+  planBatches,
+  planBatchesByArea,
+  type BatchPlanOptions,
+  type PlannedGroup,
+} from './build/batch'
 import {
   buildChangesetXml,
   buildOsmChange,
@@ -32,6 +39,10 @@ export interface CreateBatchesOptions extends BatchPlanOptions {
   now?: () => Date
   /** Region name per source id, used in the changeset comment. */
   regionOf?: (sourceId: string) => string | undefined
+  /** Oblast (or similar area) per source id: one batch per area, named in the comment. */
+  oblastOf?: (sourceId: string) => string | undefined
+  /** Plan only this many batches; the rest stay ready (a careful first live batch). */
+  limit?: number
 }
 
 /** Plan batches from decided rows. Only add/update, never superseded or already uploaded. */
@@ -51,10 +62,13 @@ export async function createBatches(
     const at = (i.decision.action === 'add' ? i.decision.position : undefined) ?? i.candidate
     return { sourceId: i.candidate.sourceId, lat: at.lat, lon: at.lon, input: i }
   })
-  const groups = planBatches(placed, o)
+  const planned: PlannedGroup<(typeof placed)[number]>[] = o.oblastOf
+    ? planBatchesByArea(placed, (p) => o.oblastOf!(p.sourceId), { maxItems: o.maxItems ?? 50 })
+    : planBatches(placed, o).map((items) => ({ items }))
+  const groups = o.limit === undefined ? planned : planned.slice(0, o.limit)
   const now = o.now ?? (() => new Date())
   const out: BatchRecord[] = []
-  for (const g of groups) {
+  for (const { area: oblast, items: g } of groups) {
     const at = now().toISOString()
     const id = `${o.datasetId}:${at}:${out.length}`
     const items: BatchItem[] = g.map(({ input: { candidate: c, decision: d } }, i) => {
@@ -82,7 +96,8 @@ export async function createBatches(
     const regions = [
       ...new Set(g.map((x) => o.regionOf?.(x.sourceId)).filter((r): r is string => !!r)),
     ]
-    const area = regions.length === 1 ? regions[0] : undefined
+    const area =
+      oblast !== undefined ? oblastLabel(oblast) : regions.length === 1 ? regions[0] : undefined
     const creates = items.filter((i) => i.kind === 'create').length
     const tagInput: Parameters<typeof changesetTags>[0] = {
       datasetName: o.info.dataset_name,

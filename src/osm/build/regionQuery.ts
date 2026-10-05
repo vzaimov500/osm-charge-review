@@ -10,6 +10,9 @@ export interface RegionQueryOptions {
   timeoutS?: number
 }
 
+/** The level of the first-order division (an oblast in Bulgaria): batches are planned per area at this level. */
+export const OBLAST_ADMIN_LEVEL = 4
+
 export function buildRegionQuery(points: readonly LonLat[], o: RegionQueryOptions): string {
   const lines = [
     `/* ${o.identifier.replace(/\*\//g, '')} */`,

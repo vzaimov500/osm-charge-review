@@ -171,6 +171,10 @@ export const en = {
   'upload.heldLinked':
     '{n} Add decisions left out: those stations are already in OSM with their ref. Change them to Update or Skip.',
   'upload.planned': '{n} batches planned.',
+  'upload.firstLive':
+    'First live upload: one small batch (at most 10 stations within 5 km). Upload and check it; once it is verified, plan the rest by oblast.',
+  'upload.noOblasts':
+    'Regions are not loaded, so batches are grouped by distance (up to 50 km). Load regions first to get one batch per oblast.',
   'upload.heldForSource':
     '{n} batches planned. {held} updates were held back: they were decided on data from another server than {target}. Fetch the {target} data and re-check them first.',
   'upload.none': 'No batches yet.',

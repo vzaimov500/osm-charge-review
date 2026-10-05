@@ -330,6 +330,29 @@ describe('createBatches', () => {
     expect(batches[0]!.status).toBe('draft')
   })
 
+  test('one batch per oblast, named in the comment; a limit plans only the first', async () => {
+    const inputs = [
+      addInput('w1', 42.7, 23.3),
+      addInput('w2', 42.7, 23.9),
+      addInput('e1', 43.2, 27.9),
+    ]
+    for (const i of inputs) await saveDecision(db, DS, i.candidate.sourceId, i.decision)
+    const oblast: Record<string, string> = { w1: 'Софийска', w2: 'Софийска', e1: 'Варна' }
+    const opts = {
+      datasetId: DS,
+      target: 'sandbox' as const,
+      info,
+      oblastOf: (id: string) => oblast[id],
+    }
+    const batches = await createBatches(db, inputs, opts)
+    expect(batches.map((b) => [b.sourceIds.sort(), b.comment])).toEqual([
+      [['e1'], 'Reviewed Example stations in област Варна: 1 added'],
+      [['w1', 'w2'], 'Reviewed Example stations in Софийска област: 2 added'], // ~50 km apart
+    ])
+    for (const b of batches) await db.delete('batch', b.id)
+    expect(await createBatches(db, inputs, { ...opts, limit: 1 })).toHaveLength(1)
+  })
+
   test('a new station is created where the reviewer placed it', async () => {
     const moved: BatchInput = {
       ...addInput('m'),

@@ -10,7 +10,13 @@ import {
   type ApiNode,
   type ApiWay,
 } from '../../../src/osm/build/osmChange'
-import { changesetTags, planBatches, spanM } from '../../../src/osm/build/batch'
+import {
+  changesetTags,
+  oblastLabel,
+  planBatches,
+  planBatchesByArea,
+  spanM,
+} from '../../../src/osm/build/batch'
 import { offset, ORIGIN } from '../match/helpers'
 
 const node: ApiNode = {
@@ -414,4 +420,53 @@ describe('changesetTags', () => {
     expect(long.comment!.length).toBe(255)
     expect(long.source!.length).toBe(255)
   })
+})
+
+describe('planBatchesByArea (one batch per oblast)', () => {
+  const at = (id: string, km: number, bearing = 90) => ({
+    sourceId: id,
+    ...offset(ORIGIN.lon, ORIGIN.lat, km * 1000, bearing),
+  })
+  const ids = (g: { items: { sourceId: string }[] }) => g.items.map((x) => x.sourceId).sort()
+
+  test('each area is one batch however wide; unknown ones are grouped by distance', () => {
+    const area: Record<string, string> = { a1: 'Бургас', a2: 'Бургас', b1: 'Варна' }
+    const items = [
+      at('a1', 0),
+      at('a2', 90),
+      at('b1', 300),
+      at('u1', 500),
+      at('u2', 520),
+      at('u3', 700),
+    ]
+    const groups = planBatchesByArea(items, (it) => area[it.sourceId])
+    expect(groups.map((g) => [g.area, ids(g)])).toEqual([
+      ['Бургас', ['a1', 'a2']], // 90 km apart, still one oblast
+      ['Варна', ['b1']],
+      [undefined, ['u1', 'u2']], // within 50 km
+      [undefined, ['u3']],
+    ])
+  })
+
+  test('a large area is split into equal parts, never 50 + a remainder', () => {
+    const items = Array.from({ length: 57 }, (_, i) => at(`s${i}`, i * 0.5))
+    const sizes = planBatchesByArea(items, () => 'Бургас').map((g) => g.items.length)
+    expect(sizes).toEqual([29, 28])
+    expect(
+      planBatchesByArea(items, () => 'X', { maxItems: 20 }).map((g) => g.items.length),
+    ).toEqual([19, 19, 19])
+  })
+
+  test('the fallback width can be set; nothing in, nothing out', () => {
+    const items = [at('u1', 0), at('u2', 20)]
+    expect(planBatchesByArea(items, () => undefined, { fallbackSpanKm: 10 })).toHaveLength(2)
+    expect(planBatchesByArea([], () => 'X')).toEqual([])
+  })
+
+  test.each([
+    ['Бургас', 'област Бургас'],
+    ['София-град', 'област София-град'],
+    ['Софийска', 'Софийска област'],
+    ['Burgas', 'Burgas'],
+  ])('%s is named %s in the comment', (name, label) => expect(oblastLabel(name)).toBe(label))
 })

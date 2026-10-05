@@ -11,8 +11,9 @@ import { bboxOf, type BBox } from '../geo/distance'
 import { parseCandidateText, type Issue, type ParsedDataset } from '../format'
 import { classifyAll, DEFAULT_MATCH_CONFIG, type CandidateMatch, type MatchConfig } from '../match'
 import { apiFor, BUILT_IN_CLIENT_IDS, isSignedIn, signIn, signOut } from '../osm/auth'
-import { buildRegionQuery, parseRegionResponse } from '../osm/build/regionQuery'
+import { buildRegionQuery, OBLAST_ADMIN_LEVEL, parseRegionResponse } from '../osm/build/regionQuery'
 import { ApiError, TARGETS, type ApiTarget } from '../osm/transport/api'
+import { FALLBACK_SPAN_KM } from '../osm/build/batch'
 import { createBatches, dryRunOsc, recoverBatch, runBatch, type BatchOutcome } from '../osm/upload'
 import { auditReportMarkdown } from '../audit/report'
 import { revertBatch, verifyBatch } from '../audit/verify'
@@ -178,6 +179,8 @@ export class AppState {
   })
   /** sourceId → administrative area name. */
   regions = $state.raw<ReadonlyMap<string, string>>(new Map())
+  /** Oblast (admin level 4) per source id, from the same lookup: batches are planned per oblast. */
+  oblasts = $state.raw<ReadonlyMap<string, string>>(new Map())
   regionNames: string[] = $derived(
     [...new Set(this.regions.values())].sort((a, b) => a.localeCompare(b, 'bg')),
   )
@@ -344,17 +347,25 @@ export class AppState {
       .filter((r) => sameData || r.decision!.action !== 'update')
       .map((r) => ({ candidate: r.candidate, decision: r.decision! }))
     const held = ready.length - inputs.length - duplicates
-    // Until a live batch has been verified, live batches stay small and local.
+    // Until a live batch has been verified, plan just one small, local batch;
+    // after that, one batch per oblast (by distance where the oblast is unknown).
     const firstLive = this.target === 'live' && !this.batches.some((b) => b.status === 'verified')
+    const byOblast = !firstLive && this.oblasts.size > 0
     const made = await createBatches(db, inputs, {
       datasetId: ds.datasetId,
       target: this.target,
       info: ds.info,
       regionOf: (id) => this.regions.get(id),
-      ...(firstLive ? FIRST_LIVE_BATCH : {}),
+      ...(firstLive
+        ? { ...FIRST_LIVE_BATCH, limit: 1 }
+        : byOblast
+          ? { oblastOf: (id: string) => this.oblasts.get(id) }
+          : { maxSpanKm: FALLBACK_SPAN_KM }),
     })
     await this.loadBatches()
     const text = [
+      firstLive && made.length > 0 ? t('upload.firstLive') : '',
+      !firstLive && !byOblast && made.length > 0 ? t('upload.noOblasts') : '',
       held
         ? t('upload.heldForSource', { n: made.length, held, target: this.target })
         : t('upload.planned', { n: made.length }),
@@ -682,6 +693,9 @@ export class AppState {
     const stored = (await db.get('setting', `regions:${datasetId}`))?.value as
       Record<string, string> | undefined
     this.regions = new Map(Object.entries(stored ?? {}))
+    const oblasts = (await db.get('setting', `oblasts:${datasetId}`))?.value as
+      Record<string, string> | undefined
+    this.oblasts = new Map(Object.entries(oblasts ?? {}))
     await db.put('setting', { key: 'lastDataset', value: datasetId })
   }
 
@@ -751,17 +765,20 @@ export class AppState {
     try {
       const cands = this.candidates
       const q = buildRegionQuery(cands, { identifier: `${CREATED_BY} ${TOOL_URL}` })
-      const names = parseRegionResponse(
-        await runOverpass(q, { endpoint: this.endpoint, logger: dbNetworkLogger(db) }),
-        cands.length,
-      )
+      const data = await runOverpass(q, { endpoint: this.endpoint, logger: dbNetworkLogger(db) })
+      // The same answer gives the town (for the filter) and the oblast (for batches).
+      const names = parseRegionResponse(data, cands.length)
+      const oblastNames = parseRegionResponse(data, cands.length, OBLAST_ADMIN_LEVEL)
       const bySource: Record<string, string> = {}
+      const oblastBySource: Record<string, string> = {}
       cands.forEach((c, i) => {
-        const n = names[i]
-        if (n !== undefined) bySource[c.sourceId] = n
+        if (names[i] !== undefined) bySource[c.sourceId] = names[i]
+        if (oblastNames[i] !== undefined) oblastBySource[c.sourceId] = oblastNames[i]
       })
       await db.put('setting', { key: `regions:${ds.datasetId}`, value: bySource })
+      await db.put('setting', { key: `oblasts:${ds.datasetId}`, value: oblastBySource })
       this.regions = new Map(Object.entries(bySource))
+      this.oblasts = new Map(Object.entries(oblastBySource))
     } catch (e) {
       this.notice = { kind: 'error', text: e instanceof OverpassError ? e.message : String(e) }
     } finally {
