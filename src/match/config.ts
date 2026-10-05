@@ -39,6 +39,7 @@ export const DEFAULT_MATCH_CONFIG: MatchConfig = {
     'operator',
     'brand',
     'name',
+    'branch',
     'parking:fee',
     'authentication:*',
     'payment:*',

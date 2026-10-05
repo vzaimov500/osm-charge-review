@@ -131,7 +131,7 @@ export const en = {
   'diff.change': 'change',
   'diff.conflict': 'conflict — tick to overwrite',
   'diff.keep': 'kept (only in OSM)',
-  'diff.variant': 'OSM has {key} — tick to add anyway',
+  'diff.variant': 'Same socket as {key} in OSM; ticking would list it twice',
   'diff.moreSpecific': 'OSM is more specific',
   'diff.unspecific': 'OSM has only "yes"',
   'action.add': 'Add',

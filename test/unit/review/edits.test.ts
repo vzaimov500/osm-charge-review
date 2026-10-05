@@ -55,6 +55,14 @@ describe('per-key ticks', () => {
     expect(defaultSelection(v)).toEqual({ 'socket:type2_cable': false })
   })
 
+  test('an existing branch is kept unless ticked; a missing one is added', () => {
+    const kept = div({ branch: 'Trakia 243 Burgas' }, { branch: 'FINES Тракия 243 ЕКО' })
+    expect(defaultSelection(kept)).toEqual({ branch: false })
+    expect(changesFor(kept, defaultSelection(kept))).toEqual({})
+    const added = div({ branch: 'Gelemenovo' }, {})
+    expect(changesFor(added, defaultSelection(added))).toEqual({ branch: 'Gelemenovo' })
+  })
+
   test('changesFor applies only ticked keys', () => {
     expect(changesFor(d, defaultSelection(d))).toEqual({
       description: 'new',
