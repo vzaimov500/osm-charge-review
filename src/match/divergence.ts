@@ -137,7 +137,8 @@ export function divergence(
     if (key === 'fee') flags.add('fee_mismatch')
     if (NAMEY.test(key)) flags.add(cmp === 'loose' ? 'operator_spelling' : 'operator_mismatch')
   }
-  tags.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
+  // Keys are unique here: suggestions never repeat a candidate key.
+  tags.sort((a, b) => (a.key < b.key ? -1 : 1))
   for (const key of Object.keys(osm.tags).sort()) {
     if (!(key in candidate.tags) && !(key in suggested))
       tags.push({ key, osm: osm.tags[key]!, state: 'only_in_osm', surveyed: surveyed(key) })
