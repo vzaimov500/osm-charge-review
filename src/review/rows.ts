@@ -113,7 +113,7 @@ export function buildRow(
     targets.push({
       pair,
       object,
-      divergence: divergence(candidate, object, ctx.cfg),
+      divergence: divergence(candidate, object, ctx.cfg, candidate.suggestedTags),
       humanFlags: flags,
       doNotTouch: flags.some((f) => f.kind === 'do_not_touch'),
     })

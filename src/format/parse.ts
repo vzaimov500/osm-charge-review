@@ -32,6 +32,8 @@ export interface Candidate {
   ref?: string
   /** Effective tags to write: default_tags ⊕ feature tags ⊕ { [ref_key]: ref }. */
   tags: OsmTags
+  /** Offered only on Update, each unticked; never written to a new object. Keys in `tags` excluded. */
+  suggestedTags?: OsmTags
   label?: string
   address?: string
   status?: 'operational' | 'planned' | 'closed'
@@ -209,6 +211,10 @@ export function validateCandidateCollection(
       contentHash: hash53(canonicalJson({ lon, lat, tags, status: p.status ?? null })),
     }
     if (p.ref !== undefined) c.ref = p.ref
+    if (p.suggested_tags !== undefined) {
+      const extra = Object.entries(p.suggested_tags).filter(([k]) => !(k in tags))
+      if (extra.length > 0) c.suggestedTags = Object.fromEntries(extra)
+    }
     if (p.label !== undefined) c.label = p.label
     if (p.address !== undefined) c.address = p.address
     if (p.status !== undefined) c.status = p.status

@@ -21,6 +21,8 @@ export interface TagDivergence {
   nuance?: 'spelling' | 'osm_unspecific' | 'osm_more_specific' | 'variant_in_osm'
   /** With `variant_in_osm`: the OSM key holding the variant. */
   variantKey?: string
+  /** From the adapter's suggestions: offered on Update only, never ticked by default. */
+  suggested?: boolean
 }
 
 export type InconsistencyFlag =
@@ -76,10 +78,21 @@ export function divergence(
   candidate: { tags: Record<string, string>; lat: number; lon: number },
   osm: Pick<OsmObject, 'tags' | 'lat' | 'lon'>,
   cfg: Pick<MatchConfig, 'movedThresholdM' | 'surveyedKeys'>,
+  suggested: Readonly<Record<string, string>> = {},
 ): Divergence {
   const surveyed = matcher(cfg.surveyedKeys)
   const tags: TagDivergence[] = []
   const flags = new Set<InconsistencyFlag>()
+
+  for (const key of Object.keys(suggested).sort()) {
+    if (key in candidate.tags) continue
+    const cv = suggested[key]!
+    const ov = osm.tags[key]
+    const base = { key, candidate: cv, surveyed: surveyed(key), suggested: true }
+    if (ov === undefined) tags.push({ ...base, state: 'missing_in_osm' })
+    else if (compareValues(key, cv, ov) === 'equal') tags.push({ ...base, osm: ov, state: 'same' })
+    else tags.push({ ...base, osm: ov, state: 'differs' })
+  }
 
   for (const key of Object.keys(candidate.tags).sort()) {
     const cv = candidate.tags[key]!
@@ -124,8 +137,9 @@ export function divergence(
     if (key === 'fee') flags.add('fee_mismatch')
     if (NAMEY.test(key)) flags.add(cmp === 'loose' ? 'operator_spelling' : 'operator_mismatch')
   }
+  tags.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0))
   for (const key of Object.keys(osm.tags).sort()) {
-    if (!(key in candidate.tags))
+    if (!(key in candidate.tags) && !(key in suggested))
       tags.push({ key, osm: osm.tags[key]!, state: 'only_in_osm', surveyed: surveyed(key) })
   }
 
@@ -137,10 +151,13 @@ export function divergence(
     .filter(
       (t) =>
         (t.state === 'differs' && t.surveyed && t.nuance !== 'osm_unspecific') ||
-        t.nuance === 'variant_in_osm',
+        t.nuance === 'variant_in_osm' ||
+        (t.suggested && t.state !== 'same'),
     )
     .map((t) => t.key)
+  // A suggestion alone never makes an update necessary.
   const updateNeeded =
-    moved || tags.some((t) => t.state === 'missing_in_osm' || t.state === 'differs')
+    moved ||
+    tags.some((t) => !t.suggested && (t.state === 'missing_in_osm' || t.state === 'differs'))
   return { tags, distanceM: d, moved, updateNeeded, flags: [...flags], conflicts }
 }

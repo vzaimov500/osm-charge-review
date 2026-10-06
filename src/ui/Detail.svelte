@@ -1,6 +1,6 @@
 <script lang="ts">
   import {
-    changeableKeys,
+    changesFor,
     defaultSelection,
     POSITION_FIXME,
     REJECT_REASONS,
@@ -32,17 +32,13 @@
       row.decision?.target?.osmType === target?.object.osmType &&
       row.decision?.target?.osmId === target?.object.osmId,
   )
-  const selected = $derived.by(() => {
-    if (decidedOnTarget && row.decision?.tags) return new Set(Object.keys(row.decision.tags))
-    const tv = target
-    return new Set(
-      tv
-        ? Object.entries(defaultSelection(tv.divergence))
-            .filter(([, on]) => on)
-            .map(([k]) => k)
-        : [],
-    )
+  // What an Update writes: the saved values (ticks and manual edits), else the default ticks.
+  const writes: Record<string, string> = $derived.by(() => {
+    if (decidedOnTarget && row.decision?.tags) return row.decision.tags
+    return target ? changesFor(target.divergence, defaultSelection(target.divergence)) : {}
   })
+  const selected = $derived(new Set(Object.keys(writes)))
+  const lockedKeys = $derived(['amenity', app.dataset?.info.ref_key ?? ''])
   const lifecycleOrOther = (tv: TargetView) =>
     tv.pair.reasons.includes('lifecycle') ? 'lifecycle' : 'target'
   const nearby = $derived(
@@ -131,10 +127,22 @@
   function toggle(key: string, on: boolean) {
     const tv = target
     if (!tv) return
-    const sel: Record<string, boolean> = {}
-    for (const k of changeableKeys(tv.divergence))
-      sel[k.key] = k.key === key ? on : selected.has(k.key)
-    void run(act.update(app, row, tv, sel, row.decision?.move))
+    const tags = { ...writes }
+    const offered = tv.divergence.tags.find((x) => x.key === key)?.candidate
+    if (on && offered !== undefined) tags[key] = offered
+    else delete tags[key]
+    void run(act.updateWith(app, row, tv, tags, row.decision?.move))
+  }
+
+  /** A value typed by the reviewer; empty, or OSM's own value, means no change to that key. */
+  function editValue(key: string, value: string) {
+    const tv = target
+    if (!tv) return
+    const tags = { ...writes }
+    const v = value.trim()
+    if (v === '' || v === tv.object.tags[key]) delete tags[key]
+    else tags[key] = v
+    void run(act.updateWith(app, row, tv, tags, row.decision?.move))
   }
 
   function pickTarget(tv: TargetView) {
@@ -145,10 +153,7 @@
   function setMove(on: boolean) {
     const tv = target
     if (!tv) return
-    const sel = Object.fromEntries(
-      changeableKeys(tv.divergence).map((k) => [k.key, selected.has(k.key)]),
-    )
-    void run(act.update(app, row, tv, sel, on))
+    void run(act.updateWith(app, row, tv, { ...writes }, on))
   }
 
   function choose(a: 'add' | 'update' | 'reject' | 'skip') {
@@ -334,8 +339,11 @@
       candidateTags={shownTags}
       {target}
       {selected}
-      editable={decidedOnTarget}
+      values={writes}
+      {lockedKeys}
+      editable={!!target && (decidedOnTarget || action === undefined)}
       ontoggle={toggle}
+      onedit={editValue}
       fold
     />
     {#if target && !target.divergence.updateNeeded && !decidedOnTarget}<div class="ok-text">

@@ -136,6 +136,24 @@ export function update(
   return app.decide(row, withNote(d, row.decision?.note))
 }
 
+/** An Update with exactly these tag values (ticks and manual edits already applied). */
+export function updateWith(
+  app: AppState,
+  row: RowModel,
+  target: TargetView,
+  tags: Record<string, string>,
+  move?: boolean,
+): Promise<string[]> {
+  const d: Draft = {
+    action: 'update',
+    target: { osmType: target.object.osmType, osmId: target.object.osmId },
+    targetVersion: target.object.version,
+    tags,
+  }
+  if (move) d.move = true
+  return app.decide(row, withNote(d, row.decision?.note))
+}
+
 export function reject(app: AppState, row: RowModel, reasonCode: RejectReason): Promise<string[]> {
   return app.decide(row, withNote({ action: 'reject', reasonCode }, row.decision?.note))
 }

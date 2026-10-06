@@ -296,3 +296,38 @@ test('a new station can be placed on the imagery; flagged by default; both survi
   await page.reload()
   await expect(page.getByLabel(/Position not verified/)).not.toBeChecked()
 })
+
+test('a suggested description is offered unticked and can be edited by hand', async ({ page }) => {
+  // Station 2 is linked to an OSM object without a description.
+  const doc = JSON.parse((await import('node:fs')).readFileSync(QUEUE, 'utf8'))
+  doc.features[1].properties.suggested_tags = { description: '2x 50kW DC CCS2' }
+  const file = join(tmpdir(), `queue-suggested-${Date.now()}.json`)
+  writeFileSync(file, JSON.stringify(doc))
+  await offline(page)
+  await loadQueue(page, file)
+  await page.getByRole('button', { name: 'Fetch OpenStreetMap data' }).click()
+  await expect(page.getByText(/OSM data from/)).toBeVisible()
+  const rows = page.locator('.li')
+  await rows.nth(1).click()
+  const detail = page.locator('section.detail')
+  const desc = detail.locator('tr', { hasText: 'description' })
+  await expect(desc).toContainText('suggested — tick to use')
+  await expect(desc.getByRole('checkbox')).not.toBeChecked()
+  await expect(rows.nth(1)).toHaveAttribute('data-decision', '')
+
+  // Ticking it is the Update.
+  await desc.getByRole('checkbox').check()
+  await expect(rows.nth(1)).toHaveAttribute('data-decision', 'update')
+
+  // Or type a different value.
+  await desc.getByRole('button', { name: 'Edit the value of description' }).click()
+  const input = detail.getByRole('textbox', { name: 'Edit the value of description' })
+  await input.fill('2x 50kW DC CCS2 (behind the hotel)')
+  await input.press('Enter')
+  await expect(desc).toContainText('your value')
+  await expect(desc).toContainText('2x 50kW DC CCS2 (behind the hotel)')
+
+  await page.reload()
+  await rows.nth(1).click()
+  await expect(detail.locator('tr', { hasText: 'description' })).toContainText('your value')
+})

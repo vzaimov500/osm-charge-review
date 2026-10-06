@@ -318,3 +318,18 @@ describe('formatIssue', () => {
     ).toBe('[confirm] SCHEMA — feature #2 (source_id "x"): m')
   })
 })
+
+describe('suggested_tags', () => {
+  test('kept apart from the tags, without keys the tags already set; not part of the change hash', () => {
+    const doc = valid()
+    const p0 = doc.features[0]!.properties
+    const plain = ok(doc).dataset.candidates[0]!
+    p0.suggested_tags = { description: '2x 50kW DC CCS2', amenity: 'parking' }
+    const c = ok(doc).dataset.candidates[0]!
+    expect(c.suggestedTags).toEqual({ description: '2x 50kW DC CCS2' })
+    expect(c.tags.description).toBeUndefined()
+    expect(c.contentHash).toBe(plain.contentHash)
+    p0.suggested_tags = { amenity: 'parking' }
+    expect(ok(doc).dataset.candidates[0]!.suggestedTags).toBeUndefined()
+  })
+})

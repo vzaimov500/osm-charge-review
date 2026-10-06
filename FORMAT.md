@@ -69,6 +69,7 @@ permission — use `LicenseRef-permission` once one is obtained.
     "source_id": "1",
     "ref": "1",
     "tags": { "socket:type2_combo": "1", "charging_station:output": "30 kW" },
+    "suggested_tags": { "description": "1x 30kW DC CCS2" },
     "label": "Pamporovo DC Wallbox",
     "address": "864, Стойките 4715, България",
     "status": "operational",
@@ -80,19 +81,20 @@ permission — use `LicenseRef-permission` once one is obtained.
 }
 ```
 
-| Field                 | Required | Purpose                                                                                                        |
-| --------------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `geometry`            | yes      | `Point`, WGS 84, **`[longitude, latitude]`**.                                                                  |
-| `source_id`           | yes      | Stable provider identifier, unique within the file.                                                            |
-| `ref`                 | no       | Value the tool writes under `metadata.ref_key`. Do not also put it in `tags` (an identical copy is tolerated). |
-| `tags`                | yes      | Already-mapped OSM tags, all values strings. At least one tag.                                                 |
-| `label`               | no       | Display only. **Never written to OpenStreetMap.**                                                              |
-| `address`             | no       | Display only.                                                                                                  |
-| `status`              | no       | `operational` / `planned` / `closed`. Non-operational rows are flagged, never silently dropped.                |
-| `updated_at`          | no       | When the provider last changed the record.                                                                     |
-| `position_accuracy_m` | no       | Widens the match radius for this row.                                                                          |
-| `notes`               | no       | Free text from the adapter to the reviewer.                                                                    |
-| `source_raw`          | no       | The original record, shown on demand for verification.                                                         |
+| Field                 | Required | Purpose                                                                                                                                            |
+| --------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `geometry`            | yes      | `Point`, WGS 84, **`[longitude, latitude]`**.                                                                                                      |
+| `source_id`           | yes      | Stable provider identifier, unique within the file.                                                                                                |
+| `ref`                 | no       | Value the tool writes under `metadata.ref_key`. Do not also put it in `tags` (an identical copy is tolerated).                                     |
+| `tags`                | yes      | Already-mapped OSM tags, all values strings. At least one tag.                                                                                     |
+| `suggested_tags`      | no       | Offered only when updating an existing object, each unticked; never written to a new one. Keys in `tags` are ignored. Not part of the change hash. |
+| `label`               | no       | Display only. **Never written to OpenStreetMap.**                                                                                                  |
+| `address`             | no       | Display only.                                                                                                                                      |
+| `status`              | no       | `operational` / `planned` / `closed`. Non-operational rows are flagged, never silently dropped.                                                    |
+| `updated_at`          | no       | When the provider last changed the record.                                                                                                         |
+| `position_accuracy_m` | no       | Widens the match radius for this row.                                                                                                              |
+| `notes`               | no       | Free text from the adapter to the reviewer.                                                                                                        |
+| `source_raw`          | no       | The original record, shown on demand for verification.                                                                                             |
 
 A feature's top-level `id`, if present, is ignored.
 

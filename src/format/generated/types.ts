@@ -4,6 +4,10 @@
  * Already-mapped OpenStreetMap tags. The adapter does the tagging.
  */
 export type OsmTags1 = OsmTags
+/**
+ * Tags offered only when updating an existing object, never written to a new one. Each needs the reviewer's explicit tick. Keys already in the effective tags are ignored.
+ */
+export type OsmTags2 = OsmTags
 
 /**
  * Interchange format between provider adapters and osm-charge-review, format_version 1. See FORMAT.md for semantics and the validation rules that go beyond this schema.
@@ -89,6 +93,7 @@ export interface CandidateProperties {
    */
   ref?: string
   tags: OsmTags1
+  suggested_tags?: OsmTags2
   /**
    * Display only. Never written to OpenStreetMap.
    */

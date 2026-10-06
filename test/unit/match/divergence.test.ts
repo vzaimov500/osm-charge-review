@@ -205,3 +205,38 @@ describe('socket variants (cable attached or not)', () => {
     expect(socketVariantOf('capacity')).toBeUndefined()
   })
 })
+
+describe('suggested tags (offered on Update, never by default)', () => {
+  const base = { amenity: 'charging_station', 'socket:type2_combo': '2' }
+
+  test('a different or missing value is offered unticked; a suggestion alone needs no update', () => {
+    const d = divergence(c(base), o({ ...base, description: '2x 200kW DC CCS2' }), cfg, {
+      description: '2x 300kW DC CCS2',
+    })
+    const row = d.tags.find((t) => t.key === 'description')!
+    expect(row).toMatchObject({ state: 'differs', suggested: true, osm: '2x 200kW DC CCS2' })
+    expect(d.conflicts).toEqual(['description'])
+    expect(d.updateNeeded).toBe(false)
+    expect(d.flags).toEqual([])
+
+    const missing = divergence(c(base), o(base), cfg, { description: 'x' })
+    expect(missing.tags.find((t) => t.key === 'description')).toMatchObject({
+      state: 'missing_in_osm',
+      suggested: true,
+    })
+    expect(missing.conflicts).toEqual(['description'])
+  })
+
+  test('an equal value is unchanged; the candidate wins over its own suggestion; OSM-only stays kept', () => {
+    const same = divergence(c(base), o({ ...base, description: 'x' }), cfg, { description: 'x' })
+    expect(same.tags.find((t) => t.key === 'description')!.state).toBe('same')
+    expect(same.conflicts).toEqual([])
+    const shadowed = divergence(c({ ...base, note: 'a' }), o(base), cfg, { note: 'b' })
+    expect(shadowed.tags.filter((t) => t.key === 'note')).toEqual([
+      expect.objectContaining({ candidate: 'a', state: 'missing_in_osm' }),
+    ])
+    expect(shadowed.tags.find((t) => t.key === 'note')!.suggested).toBeUndefined()
+    const kept = divergence(c(base), o({ ...base, description: 'x' }), cfg)
+    expect(kept.tags.find((t) => t.key === 'description')!.state).toBe('only_in_osm')
+  })
+})

@@ -9,6 +9,9 @@
     selected,
     editable,
     ontoggle,
+    values = {},
+    lockedKeys = [],
+    onedit,
     fold = false,
   }: {
     candidateTags: Record<string, string>
@@ -17,12 +20,39 @@
     selected: ReadonlySet<string>
     editable: boolean
     ontoggle: (key: string, on: boolean) => void
+    /** The values an Update would write (they differ from `candidate` where the reviewer edited). */
+    values?: Readonly<Record<string, string>>
+    /** Keys that cannot be edited by hand (the station's identity). */
+    lockedKeys?: readonly string[]
+    /** A value typed by the reviewer. */
+    onedit?: (key: string, value: string) => void
     /** Hide unchanged and OSM-only tags behind one toggle: show what would change first. */
     fold?: boolean
   } = $props()
 
   let showAll = $state(false)
-  const quiet = (tag: TagDivergence) => tag.state === 'same' || tag.state === 'only_in_osm'
+  let editing = $state<string | null>(null)
+  let draft = $state('')
+
+  /** The reviewer typed this value: it is what gets written. */
+  const edited = (tag: TagDivergence) =>
+    values[tag.key] !== undefined && values[tag.key] !== tag.candidate
+  const canEdit = (tag: TagDivergence) => editable && !!onedit && !lockedKeys.includes(tag.key)
+  function startEdit(tag: TagDivergence) {
+    editing = tag.key
+    draft = values[tag.key] ?? tag.osm ?? tag.candidate ?? ''
+  }
+  function commit() {
+    const key = editing
+    editing = null
+    if (key !== null) onedit?.(key, draft)
+  }
+  function onkey(e: KeyboardEvent) {
+    if (e.key === 'Enter') commit()
+    if (e.key === 'Escape') editing = null
+  }
+  const quiet = (tag: TagDivergence) =>
+    (tag.state === 'same' || tag.state === 'only_in_osm') && !edited(tag)
   const shown = $derived(
     target ? target.divergence.tags.filter((tag) => !fold || showAll || !quiet(tag)) : [],
   )
@@ -34,16 +64,19 @@
   const conflicts = $derived(new Set(target?.divergence.conflicts ?? []))
 
   function label(tag: TagDivergence): string {
+    if (edited(tag)) return t('diff.edited')
     if (tag.state === 'same')
       return tag.nuance === 'osm_more_specific' ? t('diff.moreSpecific') : t('diff.same')
     if (tag.state === 'only_in_osm') return t('diff.keep')
     if (tag.nuance === 'variant_in_osm') return t('diff.variant', { key: tag.variantKey ?? '' })
+    if (tag.suggested) return t('diff.suggested')
     if (conflicts.has(tag.key)) return t('diff.conflict')
     if (tag.nuance === 'osm_unspecific') return t('diff.unspecific')
     return tag.state === 'missing_in_osm' ? t('diff.add') : t('diff.change')
   }
 
   function kind(tag: TagDivergence): string {
+    if (edited(tag)) return 'change'
     if (tag.state === 'same') return 'same'
     if (tag.state === 'only_in_osm') return 'keep'
     if (conflicts.has(tag.key)) return 'conflict'
@@ -55,7 +88,8 @@
   <table class="diff">
     <tbody>
       {#each shown as tag (tag.key)}
-        {@const changeable = tag.state === 'missing_in_osm' || tag.state === 'differs'}
+        {@const changeable =
+          tag.state === 'missing_in_osm' || tag.state === 'differs' || edited(tag)}
         <tr class={kind(tag)}>
           <td class="tick">
             {#if changeable}
@@ -70,7 +104,20 @@
           </td>
           <td class="key">{tag.key}</td>
           <td class="val">
-            {#if tag.state === 'differs'}
+            {#if editing === tag.key}
+              <!-- svelte-ignore a11y_autofocus -->
+              <input
+                class="edit"
+                aria-label={t('diff.edit', { key: tag.key })}
+                bind:value={draft}
+                onkeydown={onkey}
+                onblur={commit}
+                autofocus
+              />
+            {:else if edited(tag)}
+              {#if tag.osm !== undefined}<span class="old">{tag.osm}</span> →{/if}
+              <span class="new">{values[tag.key]}</span>
+            {:else if tag.state === 'differs'}
               <span class="old">{tag.osm}</span> → <span class="new">{tag.candidate}</span>
             {:else if tag.state === 'only_in_osm'}
               {tag.osm}
@@ -81,7 +128,16 @@
                 >{/if}
             {/if}
           </td>
-          <td class="state">{label(tag)}</td>
+          <td class="state"
+            >{label(tag)}
+            {#if canEdit(tag) && editing !== tag.key}<button
+                type="button"
+                class="pen"
+                title={t('diff.edit', { key: tag.key })}
+                aria-label={t('diff.edit', { key: tag.key })}
+                onclick={() => startEdit(tag)}>✎</button
+              >{/if}</td
+          >
         </tr>
       {/each}
     </tbody>
@@ -135,6 +191,17 @@
   }
   .same {
     opacity: 0.55;
+  }
+  .edit {
+    width: 100%;
+    font: inherit;
+  }
+  .pen {
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    padding: 0 0.2rem;
+    color: var(--accent);
   }
   .keep {
     opacity: 0.55;
