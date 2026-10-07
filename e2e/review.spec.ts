@@ -331,3 +331,34 @@ test('a suggested description is offered unticked and can be edited by hand', as
   await rows.nth(1).click()
   await expect(detail.locator('tr', { hasText: 'description' })).toContainText('your value')
 })
+
+test('an existing station can be dragged to where it really is', async ({ page }) => {
+  await offline(page)
+  await loadQueue(page)
+  await page.getByRole('button', { name: 'Fetch OpenStreetMap data' }).click()
+  await expect(page.getByText(/OSM data from/)).toBeVisible()
+  const rows = page.locator('.li')
+  await rows.nth(1).click() // linked to an existing node
+  await expect(page.getByTestId('place-existing')).toContainText(
+    'drag it to where the chargers are',
+  )
+
+  const pin = page.getByTestId('map-imagery').locator('.cand-pin.existing-pin')
+  await expect(pin).toBeVisible()
+  const box = (await pin.boundingBox())!
+  await page.mouse.move(box.x + 13, box.y + 13)
+  await page.mouse.down()
+  await page.mouse.move(box.x + 60, box.y + 50, { steps: 6 })
+  await page.mouse.up()
+
+  // Dropping it is the Update, with the move.
+  await expect(page.getByTestId('moved-existing')).toContainText(
+    /Moves \d+(\.\d)? m from its current position/,
+  )
+  await expect(rows.nth(1)).toHaveAttribute('data-decision', 'update')
+  await page.reload()
+  await rows.nth(1).click()
+  await expect(page.getByTestId('moved-existing')).toBeVisible()
+  await page.getByTestId('moved-existing').getByRole('button', { name: 'Put it back' }).click()
+  await expect(page.getByTestId('moved-existing')).toHaveCount(0)
+})

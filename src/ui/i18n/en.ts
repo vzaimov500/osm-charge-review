@@ -67,6 +67,9 @@ export const en = {
   'add.dragHint': 'New station: drag the red marker onto the chargers if you can see them.',
   'add.moved': 'Placed {d} from the provider position.',
   'add.reset': 'Put it back',
+  'update.dragHint':
+    'Existing station (blue ring): if its position is wrong, drag it to where the chargers are. The red dot is the provider position.',
+  'update.moved': 'Moves {d} from its current position.',
   'add.fixme': 'Position not verified (adds fixme)',
   'add.fixmeHint':
     'Tick when the imagery does not show the station, e.g. it is newer than the photos. Adds a fixme tag asking for a check on the ground.',

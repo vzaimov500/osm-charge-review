@@ -143,6 +143,8 @@ export function updateWith(
   target: TargetView,
   tags: Record<string, string>,
   move?: boolean,
+  /** With `move`: where to; default the provider position. */
+  position?: { lat: number; lon: number },
 ): Promise<string[]> {
   const d: Draft = {
     action: 'update',
@@ -151,6 +153,7 @@ export function updateWith(
     tags,
   }
   if (move) d.move = true
+  if (move && position) d.position = position
   return app.decide(row, withNote(d, row.decision?.note))
 }
 

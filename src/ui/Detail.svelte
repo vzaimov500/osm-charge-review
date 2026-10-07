@@ -59,11 +59,32 @@
   const imageryTiles = $derived(resolveTiles(source, app.mapboxToken))
 
   // A new station can be dragged onto the chargers, and flagged when that cannot be checked.
+  // Undecided with something in OSM nearby, the marker to drag is that object (an Update).
   const placeable = $derived(
     row.match.class !== 'linked' &&
-      (action === undefined || action === 'add') &&
+      (action === 'add' || (action === undefined && row.targets.length === 0)) &&
       !row.decision?.uploadedBatchId,
   )
+  // An existing node can be dragged to where it really is: an Update that moves it.
+  const movable = $derived(
+    !placeable &&
+      target?.object.osmType === 'node' &&
+      (action === undefined || decidedOnTarget) &&
+      !row.decision?.uploadedBatchId,
+  )
+  const moveTarget = $derived(
+    decidedOnTarget && row.decision?.move ? (row.decision.position ?? null) : undefined,
+  )
+  const pin = $derived(
+    movable && target
+      ? (moveTarget ?? (moveTarget === null ? c : undefined) ?? target.object)
+      : undefined,
+  )
+  const movedFromM = $derived(moveTarget && target ? distanceM(target.object, moveTarget) : 0)
+  const dragExisting = (lat: number, lon: number) => {
+    const tv = target
+    if (tv) void run(act.updateWith(app, row, tv, { ...writes }, true, { lat, lon }))
+  }
   const addOpts = $derived(act.addOptions(app, row))
   const place = $derived(placeable ? addOpts.position : row.decision?.position)
   const movedM = $derived(place ? distanceM(c, place) : 0)
@@ -150,10 +171,17 @@
     void run(act.pickTarget(app, row, tv))
   }
 
-  function setMove(on: boolean) {
+  async function setMove(on: boolean) {
     const tv = target
     if (!tv) return
-    void run(act.updateWith(app, row, tv, { ...writes }, on))
+    const problems = await act.updateWith(app, row, tv, { ...writes }, on)
+    // Taking back a move that was the only change: nothing left to update.
+    if (!on && problems.length === 1 && problems[0] === 'update_changes_nothing') {
+      await app.decide(row, null)
+      problem = null
+      return
+    }
+    await run(Promise.resolve(problems))
   }
 
   function choose(a: 'add' | 'update' | 'reject' | 'skip') {
@@ -223,7 +251,9 @@
           {view}
           onview={(v) => (view = v)}
           {place}
-          ondragto={placeable ? dragTo : undefined}
+          {pin}
+          candidateDot={movable}
+          ondragto={placeable ? dragTo : movable ? dragExisting : undefined}
         />
       </div>
       <div class="map imagery" data-testid="map-imagery">
@@ -247,7 +277,9 @@
             {view}
             onview={(v) => (view = v)}
             {place}
-            ondragto={placeable ? dragTo : undefined}
+            {pin}
+            candidateDot={movable}
+            ondragto={placeable ? dragTo : movable ? dragExisting : undefined}
           />
         {:else}
           <p class="no-token">{t('imagery.needsToken')}</p>
@@ -317,13 +349,27 @@
         {:else if row.targets.length === 0}
           <div class="none">{t('row.noTargets')}</div>
         {/if}
+        {#if movable}
+          <div class="place" data-testid="place-existing">
+            {#if moveTarget}
+              <span data-testid="moved-existing"
+                >{t('update.moved', { d: fmtDistance(movedFromM) })}
+                <button type="button" class="link" onclick={() => void setMove(false)}
+                  >{t('add.reset')}</button
+                ></span
+              >
+            {:else}
+              <span>{t('update.dragHint')}</span>
+            {/if}
+          </div>
+        {/if}
         <!-- Offered before Update is chosen: a position-only difference has nothing else to update. -->
         {#if target?.divergence.moved && (action === 'update' || action === undefined)}
           <label class="move" title={t('row.moveHint')}>
             <input
               type="checkbox"
-              checked={action === 'update' && row.decision?.move === true}
-              onchange={(e) => setMove(e.currentTarget.checked)}
+              checked={moveTarget === null}
+              onchange={(e) => void setMove(e.currentTarget.checked)}
             />
             {t('row.move', { d: Math.round(target.divergence.distanceM) })}
           </label>

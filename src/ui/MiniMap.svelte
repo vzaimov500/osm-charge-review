@@ -41,6 +41,8 @@
     view,
     onview,
     place,
+    pin,
+    candidateDot = false,
     ondragto,
   }: {
     lat: number
@@ -58,6 +60,10 @@
     onview?: (v: View) => void
     /** Where the station would be created, when not at (lat, lon). */
     place?: { lat: number; lon: number } | undefined
+    /** Where the draggable marker sits, when it is not the candidate (an existing object). */
+    pin?: { lat: number; lon: number } | undefined
+    /** Also show the provider position as a dot (when the draggable marker is another object). */
+    candidateDot?: boolean
     /** Set: the station marker can be dragged; called with where it was dropped. */
     ondragto?: ((lat: number, lon: number) => void) | undefined
   } = $props()
@@ -148,7 +154,11 @@
         )
         .addTo(overlays)
     }
-    const at: [number, number] = place ? [place.lat, place.lon] : [lat, lon]
+    const at: [number, number] = pin
+      ? [pin.lat, pin.lon]
+      : place
+        ? [place.lat, place.lon]
+        : [lat, lon]
     if (place)
       // Where the provider says it is, once the station has been moved away from there.
       L.circleMarker([lat, lon], { radius: 6, color: '#dc2626', weight: 2, fill: false })
@@ -159,16 +169,26 @@
       L.marker(at, {
         draggable: true,
         keyboard: false,
-        icon: L.divIcon({ className: 'cand-pin', iconSize: [26, 26], iconAnchor: [13, 13] }),
+        icon: L.divIcon({
+          className: pin ? 'cand-pin existing-pin' : 'cand-pin',
+          iconSize: [26, 26],
+          iconAnchor: [13, 13],
+        }),
       })
-        .bindTooltip('drag to the chargers')
+        .bindTooltip(pin ? 'existing station: drag to where it really is' : 'drag to the chargers')
         .on('dragend', (e) => {
           const p = (e.target as import('leaflet').Marker).getLatLng()
           drop(p.lat, p.lng)
         })
         .addTo(overlays)
-    } else {
-      L.circleMarker(at, { radius: 7, color: '#dc2626', fillColor: '#dc2626', fillOpacity: 0.9 })
+    }
+    if (!ondragto || candidateDot) {
+      L.circleMarker(candidateDot ? [lat, lon] : at, {
+        radius: 7,
+        color: '#dc2626',
+        fillColor: '#dc2626',
+        fillOpacity: 0.9,
+      })
         .bindTooltip('candidate')
         .addTo(overlays)
     }
@@ -176,7 +196,7 @@
 
   $effect(() => {
     // Track the inputs, then redraw (a no-op until the map exists).
-    void [lat, lon, radiusM, nearby, place, ondragto]
+    void [lat, lon, radiusM, nearby, place, pin, candidateDot, ondragto]
     draw()
   })
 
@@ -253,6 +273,11 @@
       0 0 0 1.5px #fff,
       inset 0 0 0 1.5px #fff;
     cursor: grab;
+  }
+  /* An existing OSM station (blue, like the other OSM objects on the map). */
+  .minimap :global(.cand-pin.existing-pin) {
+    border-color: #2563eb;
+    background: radial-gradient(circle, #2563eb 0 2px, transparent 2.5px);
   }
   .paused {
     position: absolute;

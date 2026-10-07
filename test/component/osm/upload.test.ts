@@ -367,6 +367,28 @@ describe('createBatches', () => {
     expect(at).toEqual({ m: [42.7004, 23.3206], n: [42.7, 23.32] })
   })
 
+  test('a moved existing station goes where the reviewer dragged it, else to the provider position', async () => {
+    const spot = { lat: 42.7011, lon: 23.3209 }
+    const dragged: BatchInput = {
+      ...updInput('d', 11, { fee: 'yes' }),
+      decision: decision({
+        action: 'update',
+        target: { osmType: 'node', osmId: 11 },
+        targetVersion: 3,
+        tags: { fee: 'yes' },
+        move: true,
+        position: spot,
+      }),
+    }
+    const plain = updInput('p', 12, { fee: 'yes' })
+    plain.decision.move = true
+    const notMoved = updInput('n', 13, { fee: 'yes' })
+    notMoved.decision.position = spot // ignored without move
+    const [batch] = await prepare([dragged, plain, notMoved])
+    const at = Object.fromEntries(batch!.items.map((i) => [i.sourceId, [i.lat, i.lon]]))
+    expect(at).toEqual({ d: [spot.lat, spot.lon], p: [42.7001, 23.3201], n: [42.7001, 23.3201] })
+  })
+
   test('a batch for one target cannot run on another target’s client', async () => {
     const [batch] = await prepare([addInput('a')])
     await db.put('batch', { ...batch!, apiTarget: 'live' })

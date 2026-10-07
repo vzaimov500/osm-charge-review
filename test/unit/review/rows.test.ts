@@ -139,6 +139,16 @@ describe('validateDecision', () => {
     ).toEqual(['position_too_far'])
   })
 
+  test('an existing station may be moved near either position, not far from both', () => {
+    const near = offset(o.lon, o.lat, 200)
+    const far = offset(c.lon, c.lat, MAX_ADD_SHIFT_M + 50, 270)
+    const upd = (position: { lat: number; lon: number }, move = true) =>
+      validateDecision(r!, decision({ action: 'update', target, tags: {}, move, position }))
+    expect(upd(near)).toEqual([])
+    expect(upd(far)).toEqual(['position_too_far'])
+    expect(upd(far, false)).toEqual(['update_changes_nothing']) // no move: the position is ignored
+  })
+
   test('a linked station cannot be added again', () => {
     const l = cand()
     const [lr] = rows([l], [obj(30, { ...l.tags })])

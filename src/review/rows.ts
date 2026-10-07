@@ -34,7 +34,10 @@ export interface Decision {
   tags?: Record<string, string>
   /** Update: move the object to the candidate position (explicit, never default). */
   move?: boolean
-  /** Add: where the reviewer placed the station (e.g. on the chargers seen on imagery). Default: the candidate position. */
+  /**
+   * Add: where the reviewer placed the station (e.g. on the chargers seen on imagery).
+   * Update with `move`: where the object goes. Default either way: the candidate position.
+   */
   position?: { lat: number; lon: number }
   reasonCode?: RejectReason
   note?: string
@@ -192,6 +195,14 @@ export function validateDecision(row: RowModel, d: Decision): DecisionProblem[] 
     const changes = d.tags ?? {}
     if (!d.move && Object.entries(changes).every(([k, v]) => t.object.tags[k] === v))
       out.push('update_changes_nothing')
+    // A correction near the provider's or the mapped position, never a relocation.
+    if (
+      d.move &&
+      d.position &&
+      Math.min(distanceM(row.candidate, d.position), distanceM(t.object, d.position)) >
+        MAX_ADD_SHIFT_M
+    )
+      out.push('position_too_far')
   }
   if (d.action === 'reject' && d.reasonCode === undefined) out.push('reject_without_reason')
   if (d.action === 'add' && (d.tags === undefined || Object.keys(d.tags).length === 0))

@@ -59,7 +59,9 @@ export async function createBatches(
   )
   // A new station goes where the reviewer placed it, if they moved it.
   const placed = eligible.map((i) => {
-    const at = (i.decision.action === 'add' ? i.decision.position : undefined) ?? i.candidate
+    const at =
+      (i.decision.action === 'add' || i.decision.move ? i.decision.position : undefined) ??
+      i.candidate
     return { sourceId: i.candidate.sourceId, lat: at.lat, lon: at.lon, input: i }
   })
   const planned: PlannedGroup<(typeof placed)[number]>[] = o.oblastOf
@@ -81,11 +83,13 @@ export async function createBatches(
           tags: { ...(d.tags ?? c.tags) },
           placeholderId: -(i + 1),
         }
+      // A move goes to where the reviewer dragged the object, else to the provider position.
+      const to = (d.move ? d.position : undefined) ?? c
       const item: BatchItem = {
         sourceId: c.sourceId,
         kind: 'modify',
-        lat: c.lat,
-        lon: c.lon,
+        lat: to.lat,
+        lon: to.lon,
         tags: { ...(d.tags ?? {}) },
         target: d.target!,
       }
