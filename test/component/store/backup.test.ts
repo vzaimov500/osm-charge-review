@@ -115,6 +115,62 @@ describe('merging into existing storage', () => {
     expect((await loadDecisions(other, 'example-bg')).get('2')!.action).toBe('add')
   })
 
+  test('restore undoes later decisions, keeps uploaded ones, and leaves other datasets alone', async () => {
+    const file = await exportState(db)
+    // After the export: one decision changed, two new ones, one of them uploaded.
+    await saveDecision(
+      db,
+      'example-bg',
+      '1',
+      decide('2026-09-28T13:00:00Z', { action: 'skip', reasonCode: undefined }),
+    )
+    await saveDecision(
+      db,
+      'example-bg',
+      '3',
+      decide('2026-09-28T13:01:00Z', { action: 'skip', reasonCode: undefined }),
+    )
+    await saveDecision(
+      db,
+      'example-bg',
+      '4',
+      decide('2026-09-28T13:02:00Z', {
+        action: 'add',
+        tags: { amenity: 'charging_station' },
+        uploadedBatchId: 'b1',
+      }),
+    )
+    await saveDecision(db, 'other-ds', '9', decide('2026-09-28T13:03:00Z'))
+    // A changed decision that records an upload the file does not know is kept too.
+    await saveDecision(
+      db,
+      'example-bg',
+      '2',
+      decide('2026-09-28T13:04:00Z', {
+        action: 'add',
+        tags: { amenity: 'charging_station' },
+        uploadedBatchId: 'b2',
+      }),
+    )
+
+    const dry = await importState(db, file, true, 'restore')
+    expect(dry).toMatchObject({
+      mode: 'restore',
+      undoneLocalDecisions: 2,
+      keptUploadedDecisions: 2,
+    })
+    expect((await loadDecisions(db, 'example-bg')).size).toBe(4) // dry run wrote nothing
+
+    await importState(db, file, false, 'restore')
+    const after = await loadDecisions(db, 'example-bg')
+    expect([...after.keys()].sort()).toEqual(['1', '2', '4'])
+    expect(after.get('1')!.action).toBe('reject') // back to the exported decision
+    expect(after.get('2')!.uploadedBatchId).toBe('b2')
+    expect((await loadDecisions(db, 'other-ds')).size).toBe(1)
+    // The same file again: nothing left to undo.
+    expect((await importState(db, file, true, 'restore')).undoneLocalDecisions).toBe(0)
+  })
+
   test('dry run reports the plan and writes nothing', async () => {
     const file = await exportState(db)
     const empty = await fresh()

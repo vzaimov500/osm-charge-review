@@ -83,11 +83,23 @@ export async function readStateFile(text: string): Promise<StateFile> {
   return f as StateFile
 }
 
+/**
+ * merge: the newer decision wins, nothing local is lost.
+ * restore: decisions become exactly the file's again (for the datasets in the
+ * file), undoing later ones; decisions that record an upload are always kept.
+ */
+export type ImportMode = 'merge' | 'restore'
+
 export interface ImportPlan {
+  mode: ImportMode
   /** Rows written per store. */
   write: Record<StoreName, number>
-  /** Decisions where the local copy is newer and is kept. */
+  /** Merge: decisions where the local copy is newer and is kept. */
   keptLocalDecisions: number
+  /** Restore: local decisions replaced by the file's or removed. */
+  undoneLocalDecisions: number
+  /** Restore: local decisions kept because they record an upload the file does not know. */
+  keptUploadedDecisions: number
   /** Events already present locally (skipped). */
   duplicateEvents: number
 }
@@ -101,20 +113,52 @@ const eventKey = (e: { seq?: number }): string => {
 const newer = (a: DecisionRecord, b: DecisionRecord): boolean => a.decidedAt > b.decidedAt
 
 /**
- * Merge a state file into storage. Decisions: the newer one wins, so a local
- * decision made after the export is never lost. Events and network log are
- * append-only and de-duplicated. Everything else is replaced by the file's
- * copy (it is either cache or immutable history).
+ * Bring a state file into storage. Decisions follow `mode` (see ImportMode).
+ * Events and network log are append-only and de-duplicated, so the audit
+ * trail keeps everything either way. Everything else is replaced by the
+ * file's copy (it is either cache or immutable history); batches the file
+ * does not know (uploads after the export) stay.
  *
  * `dryRun` computes the plan without writing.
  */
-export async function importState(db: DB, file: StateFile, dryRun = false): Promise<ImportPlan> {
+export async function importState(
+  db: DB,
+  file: StateFile,
+  dryRun = false,
+  mode: ImportMode = 'merge',
+): Promise<ImportPlan> {
   const plan: ImportPlan = {
+    mode,
     write: Object.fromEntries(STORES.map((s) => [s, 0])) as Record<StoreName, number>,
     keptLocalDecisions: 0,
+    undoneLocalDecisions: 0,
+    keptUploadedDecisions: 0,
     duplicateEvents: 0,
   }
   const tx = db.transaction([...STORES], dryRun ? 'readonly' : 'readwrite')
+
+  // Restore: local decisions of the file's datasets that the file does not have are undone,
+  // unless they record an upload (that happened in OSM; restoring cannot take it back).
+  if (mode === 'restore') {
+    const datasets = new Set(file.stores.decision.map((d) => d.datasetId))
+    for (const r of file.stores.dataset) datasets.add(r.datasetId)
+    const inFile = new Set(file.stores.decision.map((d) => `${d.datasetId}\u0000${d.sourceId}`))
+    const decisions = tx.objectStore('decision')
+    for (const local of await decisions.getAll()) {
+      if (!datasets.has(local.datasetId) || inFile.has(`${local.datasetId}\u0000${local.sourceId}`))
+        continue
+      if (local.uploadedBatchId) {
+        plan.keptUploadedDecisions++
+        continue
+      }
+      plan.undoneLocalDecisions++
+      if (!dryRun)
+        await (decisions as unknown as { delete(k: [string, string]): Promise<void> }).delete([
+          local.datasetId,
+          local.sourceId,
+        ])
+    }
+  }
 
   const localEvents = new Set((await tx.objectStore('event').getAll()).map(eventKey))
   const localLog = new Set((await tx.objectStore('network_log').getAll()).map(eventKey))
@@ -138,9 +182,17 @@ export async function importState(db: DB, file: StateFile, dryRun = false): Prom
       if (name === 'decision') {
         const d = row as DecisionRecord
         const local = await tx.objectStore('decision').get([d.datasetId, d.sourceId])
-        if (local && !newer(d, local)) {
-          if (canonicalJson(local) !== canonicalJson(d)) plan.keptLocalDecisions++
+        const same = local !== undefined && canonicalJson(local) === canonicalJson(d)
+        if (mode === 'merge' && local && !newer(d, local)) {
+          if (!same) plan.keptLocalDecisions++
           continue
+        }
+        if (mode === 'restore' && local && !same) {
+          if (local.uploadedBatchId && local.uploadedBatchId !== d.uploadedBatchId) {
+            plan.keptUploadedDecisions++
+            continue
+          }
+          plan.undoneLocalDecisions++
         }
       }
       if (name === 'setting' && (row as { key: string }).key === 'lastExportAt') continue

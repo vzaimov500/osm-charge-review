@@ -64,6 +64,7 @@ import {
   importState,
   readStateFile,
   StateFileError,
+  type ImportMode,
   type ImportPlan,
   type StateFile,
 } from '../store/backup'
@@ -74,6 +75,7 @@ import {
   type StorageStatus,
 } from '../store/storage'
 import { CREATED_BY, TOOL_URL } from '../version'
+import { fmtDateTime } from './format'
 import { IMAGERY, readPref, writePref } from './imagery'
 import { t } from './i18n'
 
@@ -140,7 +142,13 @@ export class AppState {
   pendingRevert = $state.raw<{ batch: BatchRecord; plan: RevertPlan } | null>(null)
 
   /** A state file read and planned, awaiting the operator's confirmation. */
-  pendingImport = $state.raw<{ file: StateFile; plan: ImportPlan; name: string } | null>(null)
+  /** A state file read and planned both ways, awaiting the operator's choice. */
+  pendingImport = $state.raw<{
+    file: StateFile
+    plan: ImportPlan
+    restorePlan: ImportPlan
+    name: string
+  } | null>(null)
   /** Set by the keyboard handler to open the reject-reason picker on a row. */
   rejectRequest = $state<string | null>(null)
   /** The object picked in "Update which object?", before (or instead of) a saved Update. */
@@ -254,16 +262,35 @@ export class AppState {
     if (!this.db) return
     try {
       const file = await readStateFile(await f.text())
-      this.pendingImport = { file, plan: await importState(this.db, file, true), name: f.name }
+      this.pendingImport = {
+        file,
+        plan: await importState(this.db, file, true, 'merge'),
+        restorePlan: await importState(this.db, file, true, 'restore'),
+        name: f.name,
+      }
     } catch (e) {
       this.notice = { kind: 'error', text: e instanceof StateFileError ? e.message : String(e) }
     }
   }
 
-  async confirmStateImport(): Promise<void> {
+  async confirmStateImport(mode: ImportMode = 'merge'): Promise<void> {
     const p = this.pendingImport
     if (!p || !this.db) return
-    await this.guard(() => importState(this.db!, p.file))
+    let done!: ImportPlan
+    await this.guard(async () => {
+      done = await importState(this.db!, p.file, false, mode)
+    })
+    await appendEvent(this.db, {
+      at: new Date().toISOString(),
+      type: mode === 'restore' ? 'state_restored' : 'state_imported',
+      data: {
+        exportedAt: p.file.exported_at,
+        decisionsWritten: done.write.decision,
+        keptLocal: done.keptLocalDecisions,
+        undone: done.undoneLocalDecisions,
+        keptUploaded: done.keptUploadedDecisions,
+      },
+    })
     this.pendingImport = null
     this.datasets = await listDatasets(this.db)
     const pick = this.dataset?.datasetId ?? this.datasets[0]?.datasetId
@@ -271,10 +298,17 @@ export class AppState {
     await this.refreshExportInfo()
     this.notice = {
       kind: 'info',
-      text: t('backup.imported', {
-        decisions: p.plan.write.decision,
-        kept: p.plan.keptLocalDecisions,
-      }),
+      text:
+        mode === 'restore'
+          ? t('backup.restored', {
+              at: fmtDateTime(p.file.exported_at),
+              undone: done.undoneLocalDecisions,
+              uploaded: done.keptUploadedDecisions,
+            })
+          : t('backup.imported', {
+              decisions: done.write.decision,
+              kept: done.keptLocalDecisions,
+            }),
     }
   }
 

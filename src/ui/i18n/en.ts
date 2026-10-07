@@ -29,9 +29,19 @@ export const en = {
   'backup.last': 'Last exported {at}',
   'backup.since': '{n} decisions since — export now',
   'backup.previewTitle': 'Import {name}?',
-  'backup.preview':
-    'Exported {at} by {tool}. Will write {decisions} decisions, {candidates} candidates, {events} audit events. {kept} local decisions are newer and will be kept.',
-  'backup.confirm': 'Import',
+  'backup.preview': 'Exported {at} by {tool}. Choose how to bring it in:',
+  'backup.mergeTitle': 'Merge',
+  'backup.merge':
+    'Writes {decisions} decisions from the file; for each station the newer decision wins, so the {kept} decisions you made or changed after this export are kept.',
+  'backup.confirm': 'Merge',
+  'backup.restoreTitle': 'Restore the backup as it was',
+  'backup.restore':
+    'Your decisions become exactly those in the file: {undone} decisions made or changed after this export are undone.',
+  'backup.restoreUploaded':
+    '{n} decisions recording an upload after this export stay: those stations are already in OpenStreetMap.',
+  'backup.restoreConfirm': 'Restore',
+  'backup.restored':
+    'Backup of {at} restored: {undone} later decisions undone, {uploaded} uploaded ones kept. The audit log keeps everything.',
   'backup.imported':
     'State imported: {decisions} decisions written, {kept} newer local decisions kept.',
   'dataset.pick': 'Dataset',

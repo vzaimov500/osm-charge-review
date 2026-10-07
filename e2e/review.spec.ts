@@ -202,12 +202,30 @@ test('export, clear browser storage, import: every decision is intact', async ({
   await expect(page.getByText('Never exported')).toBeVisible()
 
   await page.getByTestId('state-import').setInputFiles(file)
-  await expect(page.getByRole('dialog')).toContainText(/Will write 2 decisions, 600 candidates/)
-  await page.getByRole('button', { name: 'Import', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText(/Writes 2 decisions from the file/)
+  await page.getByRole('button', { name: 'Merge', exact: true }).click()
   await expect(page.getByText(/State imported: 2 decisions written/)).toBeVisible()
   await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
   await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
   await expect(page.getByRole('button', { name: 'Upload · 1 ready' })).toBeVisible()
+
+  // A mistake after the export: row 1 changed, row 3 decided. Merge would keep both;
+  // restoring brings back exactly the exported decisions.
+  await rows.nth(0).click()
+  await page.locator('body').press('2')
+  await expect(rows.nth(0)).toHaveAttribute('data-decision', 'add')
+  await rows.nth(2).click()
+  await page.locator('body').press('4')
+  await expect(rows.nth(2)).toHaveAttribute('data-decision', 'skip')
+  await page.getByTestId('state-import').setInputFiles(file)
+  const dialog = page.getByRole('dialog')
+  await expect(dialog).toContainText('2 decisions you made or changed after this export are kept')
+  await expect(dialog).toContainText('2 decisions made or changed after this export are undone')
+  await dialog.getByRole('button', { name: 'Restore', exact: true }).click()
+  await expect(page.getByText(/restored: 2 later decisions undone/)).toBeVisible()
+  await expect(rows.nth(0)).toHaveAttribute('data-decision', 'skip')
+  await expect(rows.nth(1)).toHaveAttribute('data-decision', 'add')
+  await expect(rows.nth(2)).toHaveAttribute('data-decision', '')
 })
 
 test('the layout follows the window: no sideways scroll, filters become a drawer', async ({
