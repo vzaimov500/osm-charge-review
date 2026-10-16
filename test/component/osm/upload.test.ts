@@ -4,14 +4,17 @@ import { ApiError, OsmApiClient } from '../../../src/osm/transport/api'
 import {
   createBatches,
   dryRunOsc,
+  itemMatchesDecision,
   parseDownloadedChange,
+  pruneDraftBatches,
   recoverBatch,
   runBatch,
   type BatchInput,
   type RunContext,
 } from '../../../src/osm/upload'
 import { openDatabase, type DB } from '../../../src/store/db'
-import { loadDecisions, saveDecision } from '../../../src/store/decisions'
+import { clearDecision, loadDecisions, saveDecision } from '../../../src/store/decisions'
+import type { BatchItem } from '../../../src/store/db'
 import { FakeOsmApi } from '../../support/fakeOsmApi'
 
 const DS = 'example-bg'
@@ -418,6 +421,126 @@ describe('createBatches', () => {
     const [batch] = await prepare([addInput('a')])
     await runBatch(ctx, batch!.id)
     await expect(runBatch(ctx, batch!.id)).rejects.toThrow(/not draft/)
+  })
+})
+
+describe('decisions changed after planning', () => {
+  const create: BatchItem = {
+    sourceId: 'a',
+    kind: 'create',
+    lat: 42.7,
+    lon: 23.32,
+    tags: { amenity: 'charging_station' },
+    placeholderId: -1,
+  }
+  const modify: BatchItem = {
+    sourceId: 'u',
+    kind: 'modify',
+    lat: 42.7,
+    lon: 23.32,
+    tags: { fee: 'yes' },
+    target: { osmType: 'node', osmId: 11 },
+    targetVersion: 3,
+  }
+  const add = decision({ action: 'add', tags: { amenity: 'charging_station' } })
+  const upd = decision({
+    action: 'update',
+    target: { osmType: 'node', osmId: 11 },
+    targetVersion: 3,
+    tags: { fee: 'yes' },
+  })
+
+  test.each([
+    ['the same Add', create, add, true],
+    ['an Add with the candidate tags', create, decision({ action: 'add' }), true],
+    ['an Add placed where planned', create, { ...add, position: { lat: 42.7, lon: 23.32 } }, true],
+    ['the same Update', modify, upd, true],
+    ['the same move', { ...modify, move: true }, { ...upd, move: true }, true],
+    ['no decision any more', create, undefined, false],
+    ['a superseded decision', create, { ...add, superseded: true }, false],
+    ['an uploaded decision', create, { ...add, uploadedBatchId: 'b' }, false],
+    ['Add became Reject', create, { ...add, action: 'reject' as const }, false],
+    [
+      'other tags on the Add',
+      create,
+      { ...add, tags: { amenity: 'charging_station', fixme: 'x' } },
+      false,
+    ],
+    ['the Add moved', create, { ...add, position: { lat: 42.71, lon: 23.32 } }, false],
+    ['Update became Add', modify, { ...upd, action: 'add' as const }, false],
+    ['another target', modify, { ...upd, target: { osmType: 'node' as const, osmId: 12 } }, false],
+    ['another version', modify, { ...upd, targetVersion: 4 }, false],
+    ['a move added', modify, { ...upd, move: true }, false],
+    ['other tags on the Update', modify, { ...upd, tags: { fee: 'no' } }, false],
+    [
+      'the move went elsewhere',
+      { ...modify, move: true },
+      { ...upd, move: true, position: { lat: 1, lon: 2 } },
+      false,
+    ],
+  ])('%s → %s', (_, item, d, same) => {
+    expect(itemMatchesDecision(item, d)).toBe(same)
+  })
+
+  test('a changed or cleared station leaves its draft; the rest stays, recounted, needing a new dry run', async () => {
+    const inputs = [addInput('a1'), addInput('a2'), updInput('u1', 11, { fee: 'yes' })]
+    for (const i of inputs) await saveDecision(db, DS, i.candidate.sourceId, i.decision)
+    const [b] = await createBatches(db, inputs, {
+      datasetId: DS,
+      target: 'sandbox',
+      info,
+      oblastOf: () => 'Варна',
+    })
+    await db.put('batch', { ...b!, dryRunAt: '2026-10-16T10:00:00Z' })
+    const at = '2026-10-16T11:00:00Z'
+    expect(await pruneDraftBatches(db, DS, info, at)).toEqual([]) // nothing changed yet
+
+    await saveDecision(db, DS, 'a1', {
+      ...inputs[0]!.decision,
+      tags: { amenity: 'charging_station', fixme: 'x' },
+    })
+    await clearDecision(db, DS, 'u1', at)
+    expect(await pruneDraftBatches(db, DS, info, at)).toEqual([
+      { batchId: b!.id, sourceIds: ['a1', 'u1'], deleted: false },
+    ])
+    const after = (await db.get('batch', b!.id))!
+    expect(after.sourceIds).toEqual(['a2'])
+    expect(after.items.map((i) => i.sourceId)).toEqual(['a2'])
+    expect(after.comment).toBe('Reviewed Example stations in област Варна: 1 added')
+    expect(after.dryRunAt).toBeUndefined()
+    const events = await db.getAll('event')
+    expect(events.at(-1)).toMatchObject({
+      type: 'batch_items_removed',
+      data: { sourceIds: ['a1', 'u1'] },
+    })
+
+    // The next plan picks the changed station up again, with its new tags.
+    const again = await createBatches(
+      db,
+      [{ ...inputs[0]!, decision: (await loadDecisions(db, DS)).get('a1')! }],
+      { datasetId: DS, target: 'sandbox', info },
+    )
+    expect(again[0]!.items[0]!.tags).toEqual({ amenity: 'charging_station', fixme: 'x' })
+  })
+
+  test('an emptied draft is deleted; uploaded batches are never touched', async () => {
+    const [b] = await prepare([addInput('x')])
+    const done = { ...b!, id: 'done', status: 'verified' as const }
+    await db.put('batch', done)
+    await clearDecision(db, DS, 'x', '2026-10-16T11:00:00Z')
+    expect(await pruneDraftBatches(db, DS, info, '2026-10-16T11:00:00Z')).toEqual([
+      { batchId: b!.id, sourceIds: ['x'], deleted: true },
+    ])
+    expect(await db.get('batch', b!.id)).toBeUndefined()
+    expect(await db.get('batch', 'done')).toEqual(done)
+    expect((await db.getAll('event')).at(-1)).toMatchObject({ type: 'batch_discarded' })
+  })
+
+  test('a batch without an area keeps a comment without one', async () => {
+    const [b] = await prepare([addInput('p'), addInput('q')])
+    await clearDecision(db, DS, 'q', '2026-10-16T11:00:00Z')
+    await pruneDraftBatches(db, DS, info, '2026-10-16T11:00:00Z')
+    expect((await db.get('batch', b!.id))!.comment).toBe('Reviewed Example stations: 1 added')
   })
 })
 

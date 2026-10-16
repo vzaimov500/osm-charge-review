@@ -14,7 +14,14 @@ import { apiFor, BUILT_IN_CLIENT_IDS, isSignedIn, signIn, signOut } from '../osm
 import { buildRegionQuery, OBLAST_ADMIN_LEVEL, parseRegionResponse } from '../osm/build/regionQuery'
 import { ApiError, TARGETS, type ApiTarget } from '../osm/transport/api'
 import { FALLBACK_SPAN_KM } from '../osm/build/batch'
-import { createBatches, dryRunOsc, recoverBatch, runBatch, type BatchOutcome } from '../osm/upload'
+import {
+  createBatches,
+  dryRunOsc,
+  pruneDraftBatches,
+  recoverBatch,
+  runBatch,
+  type BatchOutcome,
+} from '../osm/upload'
 import { auditReportMarkdown } from '../audit/report'
 import { revertBatch, verifyBatch } from '../audit/verify'
 import type { RevertPlan } from '../osm/build/verify'
@@ -294,22 +301,20 @@ export class AppState {
     this.pendingImport = null
     this.datasets = await listDatasets(this.db)
     const pick = this.dataset?.datasetId ?? this.datasets[0]?.datasetId
-    if (pick) await this.selectDataset(pick)
+    const pruned = pick ? await this.selectDataset(pick) : ''
     await this.refreshExportInfo()
-    this.notice = {
-      kind: 'info',
-      text:
-        mode === 'restore'
-          ? t('backup.restored', {
-              at: fmtDateTime(p.file.exported_at),
-              undone: done.undoneLocalDecisions,
-              uploaded: done.keptUploadedDecisions,
-            })
-          : t('backup.imported', {
-              decisions: done.write.decision,
-              kept: done.keptLocalDecisions,
-            }),
-    }
+    const text =
+      mode === 'restore'
+        ? t('backup.restored', {
+            at: fmtDateTime(p.file.exported_at),
+            undone: done.undoneLocalDecisions,
+            uploaded: done.keptUploadedDecisions,
+          })
+        : t('backup.imported', {
+            decisions: done.write.decision,
+            kept: done.keptLocalDecisions,
+          })
+    this.notice = { kind: 'info', text: [text, pruned].filter(Boolean).join(' ') }
   }
 
   // ---- Sign-in and batches -------------------------------------------
@@ -356,6 +361,22 @@ export class AppState {
     this.batches = all
       .filter((b) => b.apiTarget === this.target)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  }
+
+  /**
+   * Take stations whose decision changed since planning out of draft batches,
+   * so a draft never uploads an outdated decision. Returns the affected batch
+   * ids and what to tell the reviewer.
+   */
+  private async prunePlanned(): Promise<{ batchIds: Set<string>; text: string }> {
+    const db = this.db
+    const ds = this.dataset
+    if (!db || !ds) return { batchIds: new Set(), text: '' }
+    const pruned = await pruneDraftBatches(db, ds.datasetId, ds.info, new Date().toISOString())
+    if (pruned.length === 0) return { batchIds: new Set(), text: '' }
+    await this.loadBatches()
+    const n = pruned.reduce((sum, p) => sum + p.sourceIds.length, 0)
+    return { batchIds: new Set(pruned.map((p) => p.batchId)), text: t('upload.pruned', { n }) }
   }
 
   /** Group ready decisions into geographically compact batches. */
@@ -425,6 +446,7 @@ export class AppState {
 
   /** Download the .osc a batch would upload now, for JOSM (dry run). */
   async dryRun(b: BatchRecord): Promise<void> {
+    if (await this.stoppedByPrune(b)) return
     await this.withBusy(t('upload.dryRunBusy'), async () => {
       const { osc, excluded } = await dryRunOsc(this.api(), b)
       download(`${b.id.replace(/[^\w-]+/g, '_')}.osc`, osc, 'application/xml')
@@ -485,6 +507,7 @@ export class AppState {
 
   async uploadBatch(b: BatchRecord): Promise<void> {
     if (!this.db || !this.dataset || !this.account || this.refuseLockedWrite()) return
+    if (await this.stoppedByPrune(b)) return
     const ctx = this.ctx()
     await this.withBusy(t('upload.busy'), async () => {
       const out = await runBatch(ctx, b.id)
@@ -494,6 +517,14 @@ export class AppState {
       if (out.step === 'verify') await verifyBatch(ctx, b.id)
       await this.afterBatch(out)
     })
+  }
+
+  /** Before a dry run or upload: if this batch had to change, stop and say so. */
+  private async stoppedByPrune(b: BatchRecord): Promise<boolean> {
+    const { batchIds, text } = await this.prunePlanned()
+    if (!batchIds.has(b.id)) return false
+    this.notice = { kind: 'error', text }
+    return true
   }
 
   async recover(b: BatchRecord): Promise<void> {
@@ -708,12 +739,16 @@ export class AppState {
       const s: ImportSummary = await importDataset(this.db!, p.parsed!, p.text)
       this.pending = null
       this.datasets = await listDatasets(this.db!)
-      await this.selectDataset(s.datasetId)
-      this.notice = { kind: 'info', text: t('loader.imported', { ...s }) }
+      const pruned = await this.selectDataset(s.datasetId)
+      this.notice = {
+        kind: 'info',
+        text: [t('loader.imported', { ...s }), pruned].filter(Boolean).join(' '),
+      }
     })
   }
 
-  async selectDataset(datasetId: string): Promise<void> {
+  /** Returns what pruning the draft batches did, if anything (also shown as a notice). */
+  async selectDataset(datasetId: string): Promise<string> {
     const db = this.db!
     this.dataset = (await db.get('dataset', datasetId)) ?? null
     this.candidates = await loadCandidates(db, datasetId)
@@ -731,6 +766,10 @@ export class AppState {
       Record<string, string> | undefined
     this.oblasts = new Map(Object.entries(oblasts ?? {}))
     await db.put('setting', { key: 'lastDataset', value: datasetId })
+    // A new candidate file or a restored backup can leave drafts with outdated decisions.
+    const { text } = await this.prunePlanned()
+    if (text) this.notice = { kind: 'info', text }
+    return text
   }
 
   // ---- OSM data and matching ---------------------------------------------------
@@ -849,6 +888,7 @@ export class AppState {
       next.delete(sourceId)
       this.decisions = next
       this.exportInfo = { ...this.exportInfo, decisionsSince: this.exportInfo.decisionsSince + 1 }
+      await this.unplanIfChanged(sourceId)
       return []
     }
     const full: Decision = {
@@ -862,7 +902,15 @@ export class AppState {
     await this.guard(() => saveDecision(db, ds.datasetId, sourceId, full))
     this.decisions = new Map(this.decisions).set(sourceId, full)
     this.exportInfo = { ...this.exportInfo, decisionsSince: this.exportInfo.decisionsSince + 1 }
+    await this.unplanIfChanged(sourceId)
     return []
+  }
+
+  /** A station in a draft batch whose decision just changed leaves that batch. */
+  private async unplanIfChanged(sourceId: string): Promise<void> {
+    if (!this.batches.some((b) => b.status === 'draft' && b.sourceIds.includes(sourceId))) return
+    const { text } = await this.prunePlanned()
+    if (text) this.notice = { kind: 'info', text }
   }
 
   private async guard(fn: () => Promise<unknown>): Promise<void> {

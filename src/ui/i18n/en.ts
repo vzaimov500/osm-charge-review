@@ -187,6 +187,8 @@ export const en = {
   'upload.heldLinked':
     '{n} Add decisions left out: those stations are already in OSM with their ref. Change them to Update or Skip.',
   'upload.planned': '{n} batches planned.',
+  'upload.pruned':
+    'Decision changed after planning: {n} station(s) taken out of their planned batch. Plan batches again to include them, then do a new dry run.',
   'upload.firstLive':
     'First live upload: one small batch (at most 10 stations within 5 km). Upload and check it; once it is verified, plan the rest by oblast.',
   'upload.noOblasts':

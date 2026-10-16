@@ -4,9 +4,10 @@
  * says exactly how far it got. Recovery is a separate, explicit action that
  * reads the changeset back; nothing here ever blind-retries.
  */
-import type { Candidate, DatasetInfo } from '../format'
+import { canonicalJson, type Candidate, type DatasetInfo } from '../format'
 import { applyChanges, isNoopUpdate, type Decision } from '../review'
 import { appendEvent, type ApiTarget, type BatchItem, type BatchRecord, type DB } from '../store/db'
+import { fromRecord } from '../store/decisions'
 import { CREATED_BY } from '../version'
 import {
   changesetTags,
@@ -132,6 +133,94 @@ export async function createBatches(
       data: { batchId: id, sourceIds: batch.sourceIds, comment },
     })
     out.push(batch)
+  }
+  return out
+}
+
+/** Does a planned item still carry what its decision says now? */
+export function itemMatchesDecision(it: BatchItem, d: Decision | undefined): boolean {
+  if (!d || d.superseded || d.uploadedBatchId) return false
+  const at = (p: { lat: number; lon: number } | undefined) =>
+    p === undefined || (p.lat === it.lat && p.lon === it.lon)
+  const tags = (t: Record<string, string>) => canonicalJson(t) === canonicalJson(it.tags)
+  if (it.kind === 'create')
+    // Without its own tags or position the Add uses the candidate's, which only
+    // change with the source; that supersedes the decision.
+    return d.action === 'add' && (d.tags === undefined || tags(d.tags)) && at(d.position)
+  return (
+    d.action === 'update' &&
+    d.target?.osmType === it.target?.osmType &&
+    d.target?.osmId === it.target?.osmId &&
+    d.targetVersion === it.targetVersion &&
+    !!d.move === !!it.move &&
+    tags(d.tags ?? {}) &&
+    (!d.move || at(d.position))
+  )
+}
+
+export interface PrunedBatch {
+  batchId: string
+  sourceIds: string[]
+  /** Nothing was left in it. */
+  deleted: boolean
+}
+
+/**
+ * A draft batch keeps the tags and position planned at the time. Take out every
+ * station whose decision changed since (or was cleared, superseded or
+ * uploaded), so a later change is never lost and the next plan picks it up.
+ * An emptied batch is deleted; a changed one needs a new dry run.
+ */
+export async function pruneDraftBatches(
+  db: DB,
+  datasetId: string,
+  info: Pick<DatasetInfo, 'dataset_name'>,
+  at: string,
+): Promise<PrunedBatch[]> {
+  const out: PrunedBatch[] = []
+  const drafts = (await db.getAllFromIndex('batch', 'datasetId', datasetId)).filter(
+    (b) => b.status === 'draft',
+  )
+  for (const b of drafts) {
+    const keep: BatchItem[] = []
+    const removed: string[] = []
+    for (const it of b.items) {
+      const r = await db.get('decision', [datasetId, it.sourceId])
+      if (itemMatchesDecision(it, r && fromRecord(r))) keep.push(it)
+      else removed.push(it.sourceId)
+    }
+    if (removed.length === 0) continue
+    const deleted = keep.length === 0
+    if (deleted) await db.delete('batch', b.id)
+    else {
+      const creates = keep.filter((i) => i.kind === 'create').length
+      const tagInput: Parameters<typeof changesetTags>[0] = {
+        datasetName: info.dataset_name,
+        source: '',
+        creates,
+        modifies: keep.length - creates,
+        createdBy: CREATED_BY,
+        live: b.apiTarget === 'live',
+      }
+      const area = /\bin (.+):/.exec(b.comment)?.[1]
+      if (area) tagInput.area = area
+      const next: BatchRecord = {
+        ...b,
+        items: keep,
+        sourceIds: keep.map((i) => i.sourceId),
+        comment: changesetTags(tagInput).comment!,
+      }
+      delete next.dryRunAt
+      await db.put('batch', next)
+    }
+    await appendEvent(db, {
+      at,
+      type: deleted ? 'batch_discarded' : 'batch_items_removed',
+      datasetId,
+      apiTarget: b.apiTarget,
+      data: { batchId: b.id, sourceIds: removed, reason: 'decision changed after planning' },
+    })
+    out.push({ batchId: b.id, sourceIds: removed, deleted })
   }
   return out
 }

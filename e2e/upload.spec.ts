@@ -79,6 +79,33 @@ test('a batch uploads to the sandbox and prompts for an export', async ({ page, 
   ).toBe(true)
 })
 
+test('a decision changed after planning leaves its batch until planned again', async ({
+  page,
+  context,
+}) => {
+  const fake = new FakeOsmApi(SANDBOX)
+  await fakeSandbox(context, fake)
+  await signedIn(context)
+  await offline(page)
+  await loadQueue(page)
+  await decideAndPlan(page)
+  const drafts = page.locator('.upload tr.status-draft')
+  await expect(drafts).toHaveCount(2) // one station each
+
+  // Back in the list, the second station (still selected) is skipped instead.
+  await page.locator('.upload .close').click()
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur())
+  await page.locator('body').press('4')
+  await expect(page.locator('.li').nth(1)).toHaveAttribute('data-decision', 'skip')
+  await expect(page.getByText(/Decision changed after planning: 1 station/)).toBeVisible()
+
+  await page.getByRole('button', { name: /^Upload · \d+ ready$/ }).click()
+  await expect(drafts).toHaveCount(1) // the emptied batch is gone
+  await page.getByRole('button', { name: 'Upload to sandbox' }).first().click()
+  await expect(page.getByText(/Batch uploaded: 1 changes/)).toBeVisible()
+  expect(fake.requests.filter((r) => r.path.endsWith('/upload'))).toHaveLength(1)
+})
+
 for (const hold of ['after-server', 'before-server'] as const) {
   test(`killing the tab mid-upload leaves recoverable state (${hold})`, async ({ context }) => {
     const fake = new FakeOsmApi(SANDBOX)
