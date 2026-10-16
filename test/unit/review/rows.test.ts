@@ -158,6 +158,17 @@ describe('validateDecision', () => {
     ])
   })
 
+  test('an uploaded station cannot be added a second time; its own decision can be re-saved', () => {
+    const u = cand()
+    const uploaded = decision({ action: 'add', tags: u.tags, uploadedBatchId: 'b1' })
+    const [ur] = rows([u], [], { [u.sourceId]: uploaded })
+    expect(validateDecision(ur!, decision({ action: 'add', tags: u.tags }))).toEqual([
+      'add_already_uploaded',
+    ])
+    expect(validateDecision(ur!, { ...uploaded, note: 'checked on the ground' })).toEqual([])
+    expect(validateDecision(ur!, decision({ action: 'skip' }))).toEqual([])
+  })
+
   test('an update targeting a do-not-touch object is refused', () => {
     const cfg = { ...DEFAULT_MATCH_CONFIG, doNotTouch: { objects: [`node/${o.osmId}`], users: [] } }
     const [r2] = rows([c], [o], {}, cfg)

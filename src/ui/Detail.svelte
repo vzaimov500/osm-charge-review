@@ -121,20 +121,23 @@
   // Update needs an existing OSM object nearby to change.
   const canUpdate = $derived(row.targets.length > 0)
   // A linked station is already in OSM: adding it again can only duplicate it.
-  const canAdd = $derived(row.match.class !== 'linked')
+  const canAdd = $derived(act.canAdd(row))
+  const uploaded = $derived(!!row.decision?.uploadedBatchId)
   const off = (a: string) => (a === 'update' && !canUpdate) || (a === 'add' && !canAdd)
   const offTitle = (a: string) =>
     a === 'update' && !canUpdate
       ? t('detail.noUpdate')
       : a === 'add' && !canAdd
-        ? t('detail.noAdd')
+        ? uploaded
+          ? t('problem.add_already_uploaded')
+          : t('detail.noAdd')
         : undefined
 
   // One line under the buttons says what the station is waiting for.
   const step = $derived.by(() => {
     if (rejectOpen && action !== 'reject') return t('detail.step.reason')
     if (!action) return t('detail.step.choose')
-    if (action === 'add' && !canAdd) return t('problem.add_when_linked')
+    if (action === 'add' && !canAdd && !uploaded) return t('problem.add_when_linked')
     return t('detail.step.done', { action: t(`action.${action}`) })
   })
 

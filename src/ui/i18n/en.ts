@@ -128,6 +128,8 @@ export const en = {
     'This update would change nothing. Tick a tag to write, or the move option.',
   'problem.reject_without_reason': 'Pick a reason for rejecting.',
   'problem.add_without_tags': 'There are no tags to add.',
+  'problem.add_already_uploaded':
+    'Already uploaded. Load fresh OSM data, then correct it as an Update on the uploaded object.',
   'problem.add_when_linked':
     'This station is already in OSM (an object carries its ref): use Update, Skip or Reject.',
   'row.addWarning': 'A matching station already exists nearby — adding may create a duplicate.',

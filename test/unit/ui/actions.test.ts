@@ -1,7 +1,14 @@
 import { expect, test } from 'vitest'
 import { validateDecision, type Decision, type RowModel } from '../../../src/review'
 import { POSITION_FIXME } from '../../../src/review'
-import { add, addOptions, pickTarget, setAddOptions, shownTarget } from '../../../src/ui/actions'
+import {
+  add,
+  addOptions,
+  canAdd,
+  pickTarget,
+  setAddOptions,
+  shownTarget,
+} from '../../../src/ui/actions'
 import { IMAGERY, OSM_TILES, resolveTiles } from '../../../src/ui/imagery'
 import { osmObjectUrl, osmUrl } from '../../../src/ui/format'
 import type { AppState } from '../../../src/ui/state.svelte'
@@ -128,4 +135,24 @@ test('a station with something in OSM nearby is not flagged by default', () => {
   const [r] = rows([c], [obj(80, { amenity: 'charging_station' })])
   expect(r!.targets.length).toBeGreaterThan(0)
   expect(addOptions(app, r!)).toEqual({ fixme: false })
+})
+
+test('Add is not offered for a linked or an already uploaded station, and is refused there', async () => {
+  const c = cand()
+  const { app, decisions } = fakeApp()
+  expect(canAdd(rows([c], [])[0]!)).toBe(true)
+  expect(canAdd(rows([c], [obj(10, { ...c.tags })])[0]!)).toBe(false) // linked
+
+  decisions[c.sourceId] = {
+    action: 'add',
+    tags: { ...c.tags },
+    decidedAt: '',
+    contentHash: 'h',
+    superseded: false,
+    uploadedBatchId: 'b1',
+  }
+  const uploaded = rows([c], [], decisions)[0]!
+  expect(canAdd(uploaded)).toBe(false)
+  expect(await add(app, uploaded)).toEqual(['add_already_uploaded'])
+  expect(decisions[c.sourceId]!.uploadedBatchId).toBe('b1') // nothing replaced it
 })

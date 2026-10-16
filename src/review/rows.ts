@@ -178,6 +178,7 @@ export const DECISION_PROBLEMS = [
   'reject_without_reason',
   'add_without_tags',
   'add_when_linked',
+  'add_already_uploaded',
   'position_too_far',
 ] as const
 export type DecisionProblem = (typeof DECISION_PROBLEMS)[number]
@@ -211,5 +212,9 @@ export function validateDecision(row: RowModel, d: Decision): DecisionProblem[] 
     out.push('position_too_far')
   // Linked: an OSM object already carries this record's ref, so an Add can only duplicate it.
   if (d.action === 'add' && row.match.class === 'linked') out.push('add_when_linked')
+  // Uploaded but not yet in the loaded OSM data: a new Add would create a second node.
+  // (Re-saving the uploaded decision itself, e.g. its note, keeps the upload mark.)
+  if (d.action === 'add' && row.decision?.uploadedBatchId && !d.uploadedBatchId)
+    out.push('add_already_uploaded')
   return out
 }

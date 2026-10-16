@@ -87,6 +87,11 @@ export function addOptions(app: AppState, row: RowModel): AddOptions {
   return { fixme: row.targets.length === 0 }
 }
 
+/** Add is offered only where it cannot duplicate: not linked, not uploaded already. */
+export function canAdd(row: RowModel): boolean {
+  return row.match.class !== 'linked' && !row.decision?.uploadedBatchId
+}
+
 export function add(
   app: AppState,
   row: RowModel,
