@@ -6,8 +6,11 @@ import {
   addOptions,
   canAdd,
   pickTarget,
+  reconfirm,
+  retag,
   setAddOptions,
   shownTarget,
+  updateWith,
 } from '../../../src/ui/actions'
 import { IMAGERY, OSM_TILES, resolveTiles } from '../../../src/ui/imagery'
 import { osmObjectUrl, osmUrl } from '../../../src/ui/format'
@@ -155,4 +158,33 @@ test('Add is not offered for a linked or an already uploaded station, and is ref
   expect(canAdd(uploaded)).toBe(false)
   expect(await add(app, uploaded)).toEqual(['add_already_uploaded'])
   expect(decisions[c.sourceId]!.uploadedBatchId).toBe('b1') // nothing replaced it
+})
+
+test('editing tags or re-confirming never moves a dragged station back to the provider position', async () => {
+  const c = cand()
+  const [o, other] = [
+    obj(30, { amenity: 'charging_station' }),
+    obj(60, { amenity: 'charging_station' }),
+  ]
+  const { app, decisions } = fakeApp()
+  const row = () => rows([c], [o, other], decisions)[0]!
+  const on = (x: typeof o) => row().targets.find((t) => t.object === x)!
+  const spot = { lat: o.lat + 0.00015, lon: o.lon }
+
+  await updateWith(app, row(), on(o), { fee: 'yes' }, true, spot)
+  await retag(app, row(), on(o), { fee: 'yes', access: 'yes' })
+  expect(decisions[c.sourceId]).toMatchObject({
+    move: true,
+    position: spot,
+    tags: { fee: 'yes', access: 'yes' },
+  })
+
+  decisions[c.sourceId] = { ...decisions[c.sourceId]!, superseded: true }
+  await reconfirm(app, row())
+  expect(decisions[c.sourceId]).toMatchObject({ move: true, position: spot, superseded: false })
+
+  // Tags for another object do not carry the move over to it.
+  await retag(app, row(), on(other), { fee: 'yes' })
+  expect(decisions[c.sourceId]!.move).toBeUndefined()
+  expect(decisions[c.sourceId]!.position).toBeUndefined()
 })

@@ -155,7 +155,7 @@
     const offered = tv.divergence.tags.find((x) => x.key === key)?.candidate
     if (on && offered !== undefined) tags[key] = offered
     else delete tags[key]
-    void run(act.updateWith(app, row, tv, tags, row.decision?.move))
+    void run(act.retag(app, row, tv, tags))
   }
 
   /** A value typed by the reviewer; empty, or OSM's own value, means no change to that key. */
@@ -166,7 +166,7 @@
     const v = value.trim()
     if (v === '' || v === tv.object.tags[key]) delete tags[key]
     else tags[key] = v
-    void run(act.updateWith(app, row, tv, tags, row.decision?.move))
+    void run(act.retag(app, row, tv, tags))
   }
 
   function pickTarget(tv: TargetView) {

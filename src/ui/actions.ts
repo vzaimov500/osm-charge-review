@@ -128,6 +128,8 @@ export function update(
   target = updateTarget(row),
   selection?: Record<string, boolean>,
   move?: boolean,
+  /** With `move`: where to; default the provider position. */
+  position?: { lat: number; lon: number },
 ): Promise<string[]> {
   if (!target) return Promise.resolve(['update_without_target'])
   const sel = selection ?? defaultSelection(target.divergence)
@@ -138,6 +140,7 @@ export function update(
     tags: changesFor(target.divergence, sel),
   }
   if (move) d.move = true
+  if (move && position) d.position = position
   return app.decide(row, withNote(d, row.decision?.note))
 }
 
@@ -178,6 +181,24 @@ export function setNote(app: AppState, row: RowModel, note: string): Promise<str
   return app.decide(row, note ? { ...rest, note } : rest)
 }
 
+/**
+ * Other tag values for an Update. A move already decided on this object stays
+ * where the reviewer dragged it: editing tags never moves the station.
+ */
+export function retag(
+  app: AppState,
+  row: RowModel,
+  target: TargetView,
+  tags: Record<string, string>,
+): Promise<string[]> {
+  const d = row.decision
+  const same =
+    d?.action === 'update' &&
+    d.target?.osmType === target.object.osmType &&
+    d.target.osmId === target.object.osmId
+  return updateWith(app, row, target, tags, same && d.move, same ? d.position : undefined)
+}
+
 /** Re-confirm a superseded decision against the current candidate. */
 export function reconfirm(app: AppState, row: RowModel): Promise<string[]> {
   const d = row.decision
@@ -191,6 +212,7 @@ export function reconfirm(app: AppState, row: RowModel): Promise<string[]> {
       target,
       target ? { ...defaultSelection(target.divergence), ...sel } : undefined,
       d.move,
+      d.position,
     )
   }
   if (d.action === 'add') return add(app, row)
